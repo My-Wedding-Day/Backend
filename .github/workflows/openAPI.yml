@@ -418,6 +418,7 @@ paths:
                       PhoneNumber: "12345678",
                       urlweb: "www.iniwebloh.com",
                       description: "ini web organizer",
+                      status: "Not Actived",
                       logo: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
                     },
                     message: "success get user",
@@ -453,6 +454,7 @@ paths:
                   PhoneNumber: "12345678",
                   urlweb: "www.iniwebloh.com",
                   description: "ini deskripsi baru",
+                  proof: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg",
                   logo: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
                 }
       responses:
