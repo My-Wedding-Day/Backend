@@ -370,6 +370,7 @@ paths:
                   WoName: "a",
                   email: "alta@alterra.id",
                   PhoneNumber: "12345678",
+                  password: "a"
                 }
       responses:
         '200':
