@@ -106,10 +106,11 @@ func SuccessCancelBook() map[string]interface{} {
 }
 
 // function response success to login with id display
-func StatusSuccessLogin(message string, id, token, name interface{}) map[string]interface{} {
+func StatusSuccessLogin(message string, id, token, name, role interface{}) map[string]interface{} {
 	var result = map[string]interface{}{
 		"status":  "success",
 		"message": message,
+		"role":    role,
 		"id":      id,
 		"token":   token,
 		"name":    name,
