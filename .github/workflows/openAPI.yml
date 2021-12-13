@@ -419,7 +419,6 @@ paths:
                     data: {
                       WoName: "a",
                       email: "alta@alterra.id",
-                      password: "inipassword",
                       PhoneNumber: "12345678",
                       urlweb: "www.iniwebloh.com",
                       description: "ini web organizer",
