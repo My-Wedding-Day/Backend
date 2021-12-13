@@ -44,4 +44,6 @@ func InitDB() {
 func InitalMigration() {
 	DB.AutoMigrate(&models.User{})
 	DB.AutoMigrate(&models.Organizer{})
+	DB.AutoMigrate(&models.Package{})
+	DB.AutoMigrate(&models.Photo{})
 }
