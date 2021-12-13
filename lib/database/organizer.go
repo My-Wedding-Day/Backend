@@ -34,17 +34,11 @@ func FindOrganizerById(id int) (*models.Organizer, error) {
 }
 
 // Fungsi untuk menambahkan organizer ke dalam database
-func InsertOrganizer(newOrganizer models.PostRequestBody) (models.Organizer, error) {
-	organizer := models.Organizer{
-		WoName:   newOrganizer.WoName,
-		Email:    newOrganizer.Email,
-		Password: newOrganizer.Password,
-		Address:  newOrganizer.Address,
-	}
-	if err := config.DB.Save(&organizer).Error; err != nil {
+func InsertOrganizer(newOrganizer models.Organizer) (models.Organizer, error) {
+	if err := config.DB.Save(&newOrganizer).Error; err != nil {
 		return models.Organizer{}, err
 	}
-	return organizer, nil
+	return newOrganizer, nil
 }
 
 // Fungsi untuk login organizer berdasarkan data yang ada pada database
@@ -83,6 +77,18 @@ func EditPhotoOrganizer(url string, organizer_id int) (int64, error) {
 		return -1, tx.Error
 	}
 	return tx.RowsAffected, nil
+}
+
+// Fungsi untuk get organizer by ID
+func FindProfilOrganizer(id int) (*models.ProfileRespon, error) {
+	organizer := models.ProfileRespon{}
+	tx := config.DB.Table("organizers").Select(
+		"organizers.id, organizers.wo_name, organizers.email, organizers.phone_number, organizers.about, organizers.web_url, organizers.status, organizers.logo, organizers.city, organizers.address").
+		Where("organizers.deleted_at IS NULL AND organizers.id=?", id).Find(&organizer)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return &organizer, nil
 }
 
 // Fungsi untuk enkripsi password organizer
