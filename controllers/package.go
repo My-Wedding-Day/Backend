@@ -20,24 +20,17 @@ import (
 // Controller untuk memasukkan package baru
 func InsertPackageController(c echo.Context) error {
 	// Mendapatkan data package baru dari client
-	input := models.PostRequestBodyPackage{}
+	input := models.Package{}
 	c.Bind(&input)
 	duplicate, _ := database.GetPackageByName(input.PackageName)
 	if duplicate > 0 {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("package name was user, try input another package name"))
-	}
-
-	paket := models.Package{
-		PackageName: input.PackageName,
-		Price:       input.Price,
-		Pax:         input.Pax,
-		PackageDesc: input.PackageDesc,
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("package name was user, try input another package name"))
 	}
 
 	// Menyimpan data barang baru menggunakan fungsi InsertPackage
-	data, e := database.InsertPackage(paket)
+	data, e := database.InsertPackage(input)
 	if e != nil {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to input package"))
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("failed to input package"))
 	}
 
 	// Process Upload Photo to Google Cloud
@@ -48,7 +41,7 @@ func InsertPackageController(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(err.Error()))
 	}
-	f, uploaded_file, err := c.Request().FormFile("url")
+	f, uploaded_file, err := c.Request().FormFile("urlphoto")
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(err.Error()))
 	}
@@ -83,12 +76,12 @@ func InsertPackageController(c echo.Context) error {
 	foto := models.Photo{
 		Package_ID: data.ID,
 		Photo_Name: packageName,
-		Url:        urlPhoto,
+		UrlPhoto:   urlPhoto,
 	}
 	_, tx := database.InsertPhoto(foto)
 	if tx != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
 	}
 
-	return c.JSON(http.StatusOK, responses.StatusSuccess("success to input package"))
+	return c.JSON(http.StatusCreated, responses.StatusSuccess("success to input package"))
 }

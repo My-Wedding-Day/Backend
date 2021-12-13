@@ -22,5 +22,5 @@ type PostRequestBodyPackage struct {
 	Price       int    `json:"price" form:"price"`
 	Pax         int    `json:"pax" form:"pax"`
 	PackageDesc string `json:"packagedesc" form:"packagedesc"`
-	Photo       string `json:"url" form:"url"`
+	UrlPhoto    string `json:"urlphoto" form:"urlphoto"`
 }
