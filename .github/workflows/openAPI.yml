@@ -40,7 +40,7 @@ paths:
                   password: "inipassword"
                 }
       responses:
-        '201':
+        '200':
           description: Success Response
           content:
             application/json:
@@ -86,7 +86,7 @@ paths:
                     password: "inipassword"
                   }
         responses:
-          '201':
+          '200':
             description: Success Response
             content:
               application/json:
@@ -422,6 +422,8 @@ paths:
                       PhoneNumber: "12345678",
                       urlweb: "www.iniwebloh.com",
                       description: "ini web organizer",
+                      city: "depok",
+                      address: "Jl.Bekantan",
                       status: "Not Actived",
                       logo: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
                     },
@@ -458,6 +460,8 @@ paths:
                   PhoneNumber: "12345678",
                   urlweb: "www.iniwebloh.com",
                   description: "ini deskripsi baru",
+                  city: "depok",
+                  address: "Jl.Bekantan",
                   proof: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg",
                   logo: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
                 }
