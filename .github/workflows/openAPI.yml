@@ -40,7 +40,7 @@ paths:
                   password: "inipassword"
                 }
       responses:
-        '200':
+        '201':
           description: Success Response
           content:
             application/json:
@@ -51,10 +51,12 @@ paths:
                     id: 1,
                     message: "Success Login",
                     name: "a",
+                    role: "user",
                     status: "success",
                     token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MzgzMjYxODAsInVzZXJJZCI6MSwidXNlcm5hbWUiOiJhZG1pbiJ9.AebFR-oQjUSOMez2ucDWkiMrS2eQIPmcYm5c71qZ_co"
+
                   }
-        '400':
+        '401':
           description: Failed Response
           content:
             application/json:
@@ -84,7 +86,7 @@ paths:
                     password: "inipassword"
                   }
         responses:
-          '200':
+          '201':
             description: Success Response
             content:
               application/json:
@@ -95,10 +97,11 @@ paths:
                       id: 1,
                       message: "Success Login",
                       name: "a",
+                      role: "organizer",
                       status: "success",
                       token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MzgzMjYxODAsInVzZXJJZCI6MSwidXNlcm5hbWUiOiJhZG1pbiJ9.AebFR-oQjUSOMez2ucDWkiMrS2eQIPmcYm5c71qZ_co"
                     }
-          '400':
+          '401':
             description: Failed Response
             content:
               application/json:
@@ -180,7 +183,7 @@ paths:
                   password: "inipassword",
                 }
       responses:
-        '200':
+        '201':
           description: Success Response
           content:
             application/json:
@@ -202,7 +205,7 @@ paths:
                     message: "Email was used, try another email",
                     status: "failed"
                   }
-  /users/my:
+  /users/profile:
     get:
       tags:
         - Users
@@ -225,7 +228,7 @@ paths:
                     message: "success get user",
                     status: "success"
                   }
-        '400':
+        '401':
           description: Failed Response
           content:
             application/json:
@@ -254,7 +257,7 @@ paths:
                   password: "inipasswordyangdiubah"
                 }
       responses:
-        '200':
+        '201':
           description: Success Response
           content:
             application/json:
@@ -265,7 +268,7 @@ paths:
                     message: "Success update user",
                     status: "success"
                   }
-        '400':
+        '401':
           description: Failed Response
           content:
             application/json:
@@ -292,7 +295,7 @@ paths:
                     message: "success delete user",
                     status: "success"
                   }
-        '400':
+        '401':
           description: Failed Response
           content:
             application/json:
@@ -339,7 +342,7 @@ paths:
                     message: "success get order list",
                     status: "success"
                   }
-        '400':
+        '401':
           description: Failed Response
           content:
             application/json:
@@ -370,10 +373,12 @@ paths:
                   WoName: "a",
                   email: "alta@alterra.id",
                   PhoneNumber: "12345678",
-                  password: "a"
+                  password: "a",
+                  city: "depok",
+                  address: "Jl. Raya Bedahan, Bedahan, Kec. Sawangan, Kota Depok, Jawa Barat 16519"
                 }
       responses:
-        '200':
+        '201':
           description: Success Response
           content:
             application/json:
@@ -395,7 +400,7 @@ paths:
                     message: "Email was used, try another email",
                     status: "failed"
                   }
-  /organizer/my:
+  /organizer/profile:
     get:
       tags:
         - Organizer
@@ -424,7 +429,7 @@ paths:
                     message: "success get user",
                     status: "success"
                   }
-        '400':
+        '401':
           description: Failed Response
           content:
             application/json:
@@ -458,7 +463,7 @@ paths:
                   logo: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
                 }
       responses:
-        '200':
+        '201':
           description: Success Response
           content:
             application/json:
@@ -469,7 +474,7 @@ paths:
                     message: "Success update data organizer",
                     status: "success"
                   }
-        '400':
+        '401':
           description: Failed Response
           content:
             application/json:
@@ -496,7 +501,7 @@ paths:
                     message: "success delete organizer",
                     status: "success"
                   }
-        '400':
+        '401':
           description: Failed Response
           content:
             application/json:
@@ -545,7 +550,7 @@ paths:
                     message: "success get order list",
                     status: "success"
                   }
-        '400':
+        '401':
           description: Failed Response
           content:
             application/json:
@@ -580,7 +585,7 @@ paths:
                   photo: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
                 }
       responses:
-        '200':
+        '201':
           description: Success Response
           content:
             application/json:
@@ -754,7 +759,7 @@ paths:
                   photo: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
                 }
       responses:
-        '200':
+        '201':
           description: Success Response
           content:
             application/json:
@@ -791,7 +796,7 @@ paths:
                     message: "success delete package",
                     status: "success"
                   }
-        '400':
+        '401':
           description: Failed Response
           content:
             application/json:
@@ -826,7 +831,7 @@ paths:
                   TotalPax: 1000,
                 }
       responses:
-        '200':
+        '201':
           description: Success Response
           content:
             application/json:
@@ -911,7 +916,7 @@ paths:
                   date: "2021-12-30",
                 }
       responses:
-        '200':
+        '201':
           description: Success Response
           content:
             application/json:
@@ -1098,6 +1103,12 @@ components:
           type: string
         },
         "PhoneNumber":{
+          type: string
+        },
+        "city":{
+          type: string
+        },
+        "address":{
           type: string
         },
         "urlweb":{
