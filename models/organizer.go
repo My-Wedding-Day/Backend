@@ -41,12 +41,14 @@ type PostPhoto struct {
 	Url string `json:"logo" form:"logo"`
 }
 
-type EditRequestBody struct {
+type ProfileRespon struct {
 	WoName      string `json:"woname" form:"woname"`
 	Email       string `json:"email" form:"email"`
 	PhoneNumber string `json:"phonenumber" form:"phonenumber"`
 	About       string `json:"about" form:"about"`
 	WebUrl      string `json:"weburl" form:"weburl"`
-	Proof       string `json:"proof" form:"proof"`
+	Status      string `json:"status" form:"status"`
 	Logo        string `json:"logo" form:"logo"`
+	City        string `json:"city" form:"city"`
+	Address     string `json:"address" form:"address"`
 }

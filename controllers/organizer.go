@@ -24,7 +24,7 @@ var (
 
 // Register Organizer Function
 func CreateOrganizerController(c echo.Context) error {
-	organizer := models.PostRequestBody{}
+	organizer := models.Organizer{}
 	// Bind all data from JSON
 	if err := c.Bind(&organizer); err != nil {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
@@ -63,7 +63,17 @@ func LoginOrganizerController(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("can not generate token"))
 	}
-	return c.JSON(http.StatusCreated, responses.StatusSuccessLogin("login success", organizer.ID, token, organizer.WoName, "organizer"))
+	return c.JSON(http.StatusOK, responses.StatusSuccessLogin("login success", organizer.ID, token, organizer.WoName, "organizer"))
+}
+
+// Get Profile Organizer Function
+func GetProfileOrganizerController(c echo.Context) error {
+	organizer_id := middlewares.ExtractTokenUserId(c)
+	respon, err := database.FindProfilOrganizer(organizer_id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
+	}
+	return c.JSON(http.StatusCreated, responses.StatusSuccessData("success get organizer", respon))
 }
 
 // Update/Edit Profile Organizer Function
