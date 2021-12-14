@@ -73,7 +73,7 @@ func GetProfileOrganizerController(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
 	}
-	return c.JSON(http.StatusCreated, responses.StatusSuccessData("success get organizer", respon))
+	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get organizer", respon))
 }
 
 // Update/Edit Profile Organizer Function
@@ -136,4 +136,9 @@ func UpdatePhotoOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
 	}
 	return c.JSON(http.StatusOK, responses.StatusSuccess("success upload photo"))
+}
+
+// Testing Get User
+func GetProfileOrganizerControllerTest() echo.HandlerFunc {
+	return GetProfileOrganizerController
 }
