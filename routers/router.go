@@ -39,6 +39,7 @@ func New() *echo.Echo {
 	// ------------------------------------------------------------------
 	e.POST("/register/organizer", controllers.CreateOrganizerController)
 	e.POST("/login/organizer", controllers.LoginOrganizerController)
+	r.GET("/organizer/profile", controllers.GetProfileOrganizerController)
 	r.PUT("/organizer/profile", controllers.UpdateOrganizerController)
 	r.PUT("/organizer/profile/photo", controllers.UpdatePhotoOrganizerController)
 	r.POST("/package", controllers.InsertPackageController)
