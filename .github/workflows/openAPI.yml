@@ -372,7 +372,6 @@ paths:
                 value: {
                   WoName: "a",
                   email: "alta@alterra.id",
-                  PhoneNumber: "12345678",
                   password: "a",
                   city: "depok",
                   address: "Jl. Raya Bedahan, Bedahan, Kec. Sawangan, Kota Depok, Jawa Barat 16519"
@@ -581,10 +580,10 @@ paths:
               userData1:
                 description: "Example data Package"
                 value: {
-                  PackageName: "Nikah Muda Asoy",
+                  packagename: "Nikah Muda Asoy",
                   price: "270000000",
                   pax: "1000",
-                  PackageDesc: "ini cuman package desc kok",
+                  packagedesc: "ini cuman package desc kok",
                   urlphoto: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
                 }
       responses:
@@ -1105,9 +1104,6 @@ components:
         "password":{
           type: string
         },
-        "PhoneNumber":{
-          type: string
-        },
         "city":{
           type: string
         },
@@ -1162,7 +1158,7 @@ components:
     requestPostPackage:
       type: object
       properties: {
-        "PackageName":{
+        "packagename":{
           type: string
         },
         "price":{
@@ -1171,7 +1167,7 @@ components:
         "pax":{
           type: integer
         },
-        "PackageDesc":{
+        "packagedesc":{
           type: string
         },
         "urlphoto":{
