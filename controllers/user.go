@@ -41,7 +41,7 @@ func LoginUsersController(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("can not generate token"))
 	}
-	return c.JSON(http.StatusOK, responses.StatusSuccessLogin("login success", users.ID, token, users.Name, users.Role))
+	return c.JSON(http.StatusCreated, responses.StatusSuccessLogin("login success", users.ID, token, users.Name, users.Role))
 }
 
 //get user by id
