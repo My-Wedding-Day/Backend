@@ -32,7 +32,7 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
 	}
 	// Check data cannot be empty
-	if organizer.WoName == "" || organizer.Email == "" || organizer.Password == "" || organizer.City == "" || organizer.Address == "" {
+	if organizer.WoName == "" || organizer.Email == "" || organizer.Password == "" || organizer.City == "" || organizer.Address == "" || organizer.PhoneNumber == "" {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
 	}
 	// Check Format Email
@@ -45,6 +45,10 @@ func CreateOrganizerController(c echo.Context) error {
 	row, err := database.FindOrganizer(organizer)
 	if row != nil || err != nil {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email or bussinese name was used, try another one"))
+	}
+	phonecheck, er := database.CheckPhoneNumber(organizer.PhoneNumber)
+	if phonecheck > 0 || er != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone number was used, try another one"))
 	}
 	// hash password bcrypt
 	password, _ := database.GeneratehashPassword(organizer.Password)
