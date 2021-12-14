@@ -95,7 +95,7 @@ func TestLoginOrganizerSuccess(t *testing.T) {
 		if err != nil {
 			assert.Error(t, err, "error marshal")
 		}
-		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, http.StatusCreated, rec.Code)
 		assert.Equal(t, 1, organizer.ID)
 		assert.Equal(t, "success", organizer.Status)
 		assert.Equal(t, "login success", organizer.Message)
@@ -282,6 +282,7 @@ func TestGetProfileOrganizerSuccess(t *testing.T) {
 		assert.Equal(t, "Makassar", organizer.Data.City)
 	})
 }
+
 func TestGetProfileOrganizerFailed(t *testing.T) {
 	e := InitEchoTestAPI()
 	InsertMockDataUserToDB()

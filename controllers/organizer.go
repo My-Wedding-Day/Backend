@@ -63,7 +63,7 @@ func LoginOrganizerController(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("can not generate token"))
 	}
-	return c.JSON(http.StatusOK, responses.StatusSuccessLogin("login success", organizer.ID, token, organizer.WoName, "organizer"))
+	return c.JSON(http.StatusCreated, responses.StatusSuccessLogin("login success", organizer.ID, token, organizer.WoName, "organizer"))
 }
 
 // Get Profile Organizer Function
@@ -85,7 +85,7 @@ func UpdateOrganizerController(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
 	}
-	return c.JSON(http.StatusOK, responses.StatusSuccess("success edit data"))
+	return c.JSON(http.StatusCreated, responses.StatusSuccess("success edit data"))
 }
 
 // Update/Edit Profil Photo Organizer Function
@@ -135,7 +135,7 @@ func UpdatePhotoOrganizerController(c echo.Context) error {
 	if e != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
 	}
-	return c.JSON(http.StatusOK, responses.StatusSuccess("success upload photo"))
+	return c.JSON(http.StatusCreated, responses.StatusSuccess("success upload photo"))
 }
 
 // Testing Get User
