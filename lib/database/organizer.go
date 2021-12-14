@@ -20,6 +20,28 @@ func FindOrganizerByEmail(email string) (*models.Organizer, error) {
 	return nil, nil
 }
 
+func CheckPhoneNumber(phone string) (int64, error) {
+	organizer := models.Organizer{}
+	tx := config.DB.Where("phone_number=?", phone).Find(&organizer)
+	if tx.Error != nil {
+		return -1, tx.Error
+	}
+	return tx.RowsAffected, nil
+}
+
+// Fungsi untuk mengambil dan mencari data organizer by email di database
+func FindOrganizer(input models.Organizer) (*models.Organizer, error) {
+	organizer := models.Organizer{}
+	tx := config.DB.Where("email=? OR wo_name=?", input.Email, input.WoName).Find(&organizer)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	if tx.RowsAffected > 0 {
+		return &organizer, nil
+	}
+	return nil, nil
+}
+
 // Fungsi untuk mengambil dan mencari data organizer by id di database
 func FindOrganizerById(id int) (*models.Organizer, error) {
 	organizer := models.Organizer{}

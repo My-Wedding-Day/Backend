@@ -9,6 +9,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -29,10 +31,20 @@ func CreateOrganizerController(c echo.Context) error {
 	if err := c.Bind(&organizer); err != nil {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
 	}
+	// Check data cannot be empty
+	if organizer.WoName == "" || organizer.Email == "" || organizer.Password == "" || organizer.City == "" || organizer.Address == "" {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
+	}
+	// Check Format Email
+	pattern := `^\w+@\w+\.\w+$`
+	matched, _ := regexp.Match(pattern, []byte(organizer.Email))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
+	}
 	// Check Organizer is Exist
-	row, _ := database.FindOrganizerByEmail(organizer.Email)
-	if row != nil {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email was used, try another email"))
+	row, err := database.FindOrganizer(organizer)
+	if row != nil || err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email or bussinese name was used, try another one"))
 	}
 	// hash password bcrypt
 	password, _ := database.GeneratehashPassword(organizer.Password)
@@ -70,6 +82,19 @@ func LoginOrganizerController(c echo.Context) error {
 func GetProfileOrganizerController(c echo.Context) error {
 	organizer_id := middlewares.ExtractTokenUserId(c)
 	respon, err := database.FindProfilOrganizer(organizer_id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
+	}
+	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get organizer", respon))
+}
+
+// Get Profile Organizer by ID
+func GetProileOrganizerbyIDController(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("false param"))
+	}
+	respon, err := database.FindProfilOrganizer(id)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
 	}
