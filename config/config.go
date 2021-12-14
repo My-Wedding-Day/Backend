@@ -47,3 +47,21 @@ func InitalMigration() {
 	DB.AutoMigrate(&models.Package{})
 	DB.AutoMigrate(&models.Photo{})
 }
+
+// Initia Database Unit Testing
+func InitDBTest() {
+	// Sesuaikan dengan database kalian
+	connect := "root:@tcp(localhost:3306)/alta_wedding_test?charset=utf8&parseTime=True&loc=Local"
+	var err error
+	DB, err = gorm.Open(mysql.Open(connect), &gorm.Config{})
+	if err != nil {
+		panic(err)
+	}
+	InitalMigrationTest()
+}
+
+// Function Initial Migration (Tabel)
+func InitalMigrationTest() {
+	DB.Migrator().DropTable(&models.Organizer{})
+	DB.AutoMigrate(&models.Organizer{})
+}
