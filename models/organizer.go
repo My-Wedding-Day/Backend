@@ -7,18 +7,19 @@ import (
 )
 
 type Organizer struct {
-	ID          int    `gorm:"primarykey;AUTO_INCREMENT"`
-	WoName      string `gorm:"type:varchar(255);not null" json:"woname" form:"woname"`
-	Email       string `gorm:"type:varchar(100);unique;not null" json:"email" form:"email"`
-	Password    string `gorm:"type:varchar(255);not null" json:"password" form:"password"`
-	PhoneNumber string `gorm:"type:varchar(20)" json:"phonenumber" form:"phonenumber"`
-	About       string `gorm:"type:longtext" json:"about" form:"about"`
-	City        string `gorm:"type:varchar(255)" json:"city" form:"city"`
-	Address     string `gorm:"type:varchar(255)" json:"address" form:"address"`
-	WebUrl      string `gorm:"type:varchar(255)" json:"weburl" form:"weburl"`
-	Proof       string `gorm:"type:varchar(255)" json:"proof" form:"proof"`
-	Logo        string `gorm:"type:varchar(255)" json:"logo" form:"logo"`
-	Status      string `gorm:"type:varchar(255); default:Not Activated" json:"status" form:"status"`
+	ID          int       `gorm:"primarykey;AUTO_INCREMENT"`
+	WoName      string    `gorm:"type:varchar(255);not null" json:"woname" form:"woname"`
+	Email       string    `gorm:"type:varchar(100);unique;not null" json:"email" form:"email"`
+	Password    string    `gorm:"type:varchar(255);not null" json:"password" form:"password"`
+	PhoneNumber string    `gorm:"type:varchar(20)" json:"phonenumber" form:"phonenumber"`
+	About       string    `gorm:"type:longtext" json:"about" form:"about"`
+	City        string    `gorm:"type:varchar(255)" json:"city" form:"city"`
+	Address     string    `gorm:"type:varchar(255)" json:"address" form:"address"`
+	WebUrl      string    `gorm:"type:varchar(255)" json:"weburl" form:"weburl"`
+	Proof       string    `gorm:"type:varchar(255)" json:"proof" form:"proof"`
+	Logo        string    `gorm:"type:varchar(255)" json:"logo" form:"logo"`
+	Status      string    `gorm:"type:varchar(255); default:Not Activated" json:"status" form:"status"`
+	Package     []Package `gorm:"foreignKey:Organizer_ID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   gorm.DeletedAt `gorm:"index"`
