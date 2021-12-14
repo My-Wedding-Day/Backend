@@ -35,10 +35,10 @@ func LoginUsersController(c echo.Context) error {
 	c.Bind(&login)
 	users, err := database.LoginUsers(&login)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid email"))
 	}
 	if users == nil {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid email or password"))
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid password"))
 	}
 	token, err := middlewares.CreateToken(int(users.ID))
 	if err != nil {
@@ -52,7 +52,7 @@ func GetUsersController(c echo.Context) error {
 	loginuser := middlewares.ExtractTokenUserId(c)
 	datauser, e := database.GetUser(loginuser)
 	if e != nil {
-		return c.JSON(http.StatusInternalServerError, responses.StatusFailedInternal)
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
 	}
 	respon := models.Profile{
 		ID:    datauser.ID,
