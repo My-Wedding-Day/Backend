@@ -35,13 +35,16 @@ func LoginUsersController(c echo.Context) error {
 	c.Bind(&login)
 	users, err := database.LoginUsers(&login)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
+	}
+	if users == nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid email or password"))
 	}
 	token, err := middlewares.CreateToken(int(users.ID))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("can not generate token"))
 	}
-	return c.JSON(http.StatusOK, responses.StatusSuccessLogin("login success", users.ID, token, users.Name, users.Role))
+	return c.JSON(http.StatusCreated, responses.StatusSuccessLogin("login success", users.ID, token, users.Name, users.Role))
 }
 
 //get user by id
