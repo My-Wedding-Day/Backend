@@ -2,6 +2,7 @@ package routers
 
 import (
 	"alta-wedding/constants"
+	"alta-wedding/controllers"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -26,6 +27,21 @@ func New() *echo.Echo {
 	// ------------------------------------------------------------------
 	// LOGIN & REGISTER USER
 	// ------------------------------------------------------------------
-
+	e.POST("/register/users", controllers.RegisterUsersController)
+	e.POST("/login/users", controllers.LoginUsersController)
+	// ------------------------------------------------------------------
+	// USER ROUTER
+	// ------------------------------------------------------------------
+	r.GET("/users/profile", controllers.GetUsersController)
+	r.PUT("/users/profile", controllers.UpdateUserController)
+	// ------------------------------------------------------------------
+	// LOGIN & REGISTER ORGANIZER
+	// ------------------------------------------------------------------
+	e.POST("/register/organizer", controllers.CreateOrganizerController)
+	e.POST("/login/organizer", controllers.LoginOrganizerController)
+	r.GET("/organizer/profile", controllers.GetProfileOrganizerController)
+	r.PUT("/organizer/profile", controllers.UpdateOrganizerController)
+	r.PUT("/organizer/profile/photo", controllers.UpdatePhotoOrganizerController)
+	r.POST("/package", controllers.InsertPackageController)
 	return e
 }
