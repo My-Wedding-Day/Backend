@@ -6,6 +6,7 @@ import (
 	"alta-wedding/middlewares"
 	"alta-wedding/models"
 	"net/http"
+	"regexp"
 
 	"github.com/labstack/echo/v4"
 )
@@ -14,11 +15,16 @@ import (
 func RegisterUsersController(c echo.Context) error {
 	var user models.User
 	c.Bind(&user)
+	// Check Format Email
+	pattern := `^\w+@\w+\.\w+$`
+	matched, _ := regexp.Match(pattern, []byte(user.Email))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
+	}
 	duplicate, _ := database.GetUserByEmail(user.Email)
 	if duplicate > 0 {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Email was used, try another email"))
 	}
-
 	Password, _ := database.GeneratehashPassword(user.Password)
 	user.Password = Password
 	user.Role = "User"
@@ -35,15 +41,12 @@ func LoginUsersController(c echo.Context) error {
 	c.Bind(&login)
 	users, err := database.LoginUsers(&login)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid email"))
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
 	}
 	if users == nil {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid password"))
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid email or password"))
 	}
-	token, err := middlewares.CreateToken(int(users.ID))
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("can not generate token"))
-	}
+	token, _ := middlewares.CreateToken(int(users.ID))
 	return c.JSON(http.StatusCreated, responses.StatusSuccessLogin("login success", users.ID, token, users.Name, users.Role))
 }
 

@@ -71,10 +71,7 @@ func LoginOrganizerController(c echo.Context) error {
 	if organizer == nil {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid email or password"))
 	}
-	token, err := middlewares.CreateToken(int(organizer.ID))
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("can not generate token"))
-	}
+	token, _ := middlewares.CreateToken(int(organizer.ID))
 	return c.JSON(http.StatusCreated, responses.StatusSuccessLogin("login success", organizer.ID, token, organizer.WoName, "organizer"))
 }
 
