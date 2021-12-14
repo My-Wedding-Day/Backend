@@ -7,7 +7,7 @@ import (
 
 func GetUser(userID int) (*models.User, error) {
 	var userid models.User
-	tx := config.DB.Find(&userid, userID)
+	tx := config.DB.Where("id=?", userID).Find(&userid)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
