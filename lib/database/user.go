@@ -19,7 +19,7 @@ func GetUser(userID int) (*models.User, error) {
 
 func GetUserByEmail(email string) (int64, error) {
 	var usermail models.User
-	tx := config.DB.Where("email = ?", email).First(&usermail)
+	tx := config.DB.Where("email = ?", email).Find(&usermail)
 	if tx.Error != nil {
 		return 0, tx.Error
 	}
@@ -40,15 +40,12 @@ func RegisterUser(user models.User) (interface{}, error) {
 func LoginUsers(user *models.UserLogin) (*models.User, error) {
 	var err error
 	userpassword := models.User{}
-	if err = config.DB.Where("email = ?", user.Email).First(&userpassword).Error; err != nil {
+	if err = config.DB.Where("email = ?", user.Email).Find(&userpassword).Error; err != nil {
 		return nil, err
 	}
 	check := CheckPasswordHash(user.Password, userpassword.Password)
 	if !check {
 		return nil, nil
-	}
-	if err := config.DB.Save(userpassword).Error; err != nil {
-		return nil, err
 	}
 	return &userpassword, nil
 }
