@@ -50,3 +50,37 @@ func GetPackages() (interface{}, error) {
 	}
 	return paket, nil
 }
+
+// Fungsi untuk mendapatkan seluruh data packages by id organizer
+func GetPackagesByToken(id int) (interface{}, error) {
+	var paket []GetPackageStruct
+
+	query := config.DB.Table("packages").Select(
+		"photos.url_photo, packages.package_desc, packages.pax, packages.price, packages.package_name, packages.organizer_id, packages.id").Joins(
+		"join photos on packages.id = photos.package_id").Where(
+		"package.organizer_id = ? AND packages.deleted_at is NULL", id).Find(&paket)
+	if query.Error != nil {
+		return nil, query.Error
+	}
+	if query.RowsAffected == 0 {
+		return 0, query.Error
+	}
+	return paket, nil
+}
+
+// Fungsi untuk mendapatkan seluruh data packages by id
+func GetPackagesByID(id int) (interface{}, error) {
+	var paket []GetPackageStruct
+
+	query := config.DB.Table("packages").Select(
+		"photos.url_photo, packages.package_desc, packages.pax, packages.price, packages.package_name, packages.organizer_id, packages.id").Joins(
+		"join photos on packages.id = photos.package_id").Where(
+		"packages.id = ? AND packages.deleted_at is NULL", id).Find(&paket)
+	if query.Error != nil {
+		return nil, query.Error
+	}
+	if query.RowsAffected == 0 {
+		return 0, query.Error
+	}
+	return paket, nil
+}
