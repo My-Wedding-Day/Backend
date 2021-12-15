@@ -25,7 +25,7 @@ func InsertPackageController(c echo.Context) error {
 	c.Bind(&input)
 	duplicate, _ := database.GetPackageByName(input.PackageName)
 	if duplicate > 0 {
-		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("package name was user, try input another package name"))
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("package name was use, try input another package name"))
 	}
 	organizer_id := middlewares.ExtractTokenUserId(c)
 	input.Organizer_ID = organizer_id
