@@ -132,7 +132,7 @@ paths:
                   value: {
                     data: [{
                       PackageID: 1,
-                      ProfileWoID: 1,
+                      Organizer_ID: 1,
                       PackageName: "Wedding 1 Malam",
                       Price: 100000000,
                       Pax: 100,
@@ -140,7 +140,7 @@ paths:
                     },
                     {
                       PackageID: 2,
-                      ProfileWoID: 2,
+                      Organizer_ID: 2,
                       PackageName: "Wedding 2 Malam",
                       Price: 200000000,
                       Pax: 200,
@@ -324,10 +324,10 @@ paths:
                       ReservationID: 1,
                       PackageID: 1,
                       PackageName: "Nikah Muda Asoy",
-                      ProfileWoID: 1,
+                      Organizer_ID: 1,
                       WoName: "a",
-                      date: "2021-12-07",
-                      additional: "none",
+                      Date: "2021-12-07",
+                      Additional: "none",
                       TotalPax: 1000,
                       StatusOrder: "waiting",
                       StatusPayment: "not paided"
@@ -336,10 +336,10 @@ paths:
                       ReservationID: 2,
                       PackageID: 1,
                       PackageName: "Nikah Muda Asoy",
-                      ProfileWoID: 2,
+                      Organizer_ID: 2,
                       WoName: "b",
-                      date: "2021-12-09",
-                      additional: "none",
+                      Date: "2021-12-09",
+                      Additional: "none",
                       TotalPax: 1000,
                       StatusOrder: "waiting",
                       StatusPayment: "not paided"
@@ -673,21 +673,21 @@ paths:
                     data: [
                       {
                         PackageID: 1,
-                        ProfileWoID: 1,
+                        Organizer_ID: 1,
                         PackageName: "Nikah Muda Asoy",
-                        price: "270000000",
-                        pax: "1000",
+                        Price: "270000000",
+                        Pax: "1000",
                         PackageDesc: "ini cuman package desc kok",
-                        photo: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
+                        UrlPhoto: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
                       },
                       {
                         PackageID: 2,
-                        ProfileWoID: 2,
+                        Organizer_ID: 2,
                         PackageName: "Nikah Muda Asoy euy",
-                        price: "280000000",
-                        pax: "1000",
+                        Price: "280000000",
+                        Pax: "1000",
                         PackageDesc: "ini cuman package desc kok",
-                        photo: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
+                        UrlPhoto: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
                       }
                     ],
                     message: "success get package",
@@ -721,7 +721,7 @@ paths:
                     data: [
                       {
                         PackageID: 1,
-                        ProfileWoID: 1,
+                        Organizer_ID: 1,
                         PackageName: "Nikah Muda Asoy",
                         price: "270000000",
                         pax: "1000",
@@ -730,7 +730,7 @@ paths:
                       },
                       {
                         PackageID: 2,
-                        ProfileWoID: 1,
+                        Organizer_ID: 1,
                         PackageName: "Nikah Muda Asoy Tanpa Pasangan",
                         price: "170000000",
                         pax: "1000",
@@ -768,12 +768,12 @@ paths:
                   value: {
                     data: {
                         PackageID: 1,
-                        ProfileWoID: 1,
+                        Organizer_ID: 1,
                         PackageName: "Nikah Muda Asoy",
-                        price: "270000000",
-                        pax: "1000",
+                        Price: "270000000",
+                        Pax: "1000",
                         PackageDesc: "ini cuman package desc kok",
-                        photo: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
+                        UrlPhoto: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
                       },
                     message: "success get package",
                     status: "success"
@@ -1007,10 +1007,10 @@ paths:
                         ReservationID: 1,
                         PackageID: 1,
                         PackageName: "Nikah Muda Asoy",
-                        ProfileWoID: 1,
+                        Organizer_ID: 1,
                         WoName: "a",
-                        date: "2021-12-07",
-                        additional: "none",
+                        Date: "2021-12-07",
+                        Additional: "none",
                         TotalPax: 1000,
                         StatusOrder: "waiting",
                         StatusPayment: "not paided"
