@@ -324,18 +324,24 @@ paths:
                       ReservationID: 1,
                       PackageID: 1,
                       PackageName: "Nikah Muda Asoy",
+                      ProfileWoID: 1,
+                      WoName: "a",
                       date: "2021-12-07",
                       additional: "none",
                       TotalPax: 1000,
+                      StatusOrder: "waiting",
                       StatusPayment: "not paided"
                     },
                     {
                       ReservationID: 2,
                       PackageID: 1,
                       PackageName: "Nikah Muda Asoy",
+                      ProfileWoID: 2,
+                      WoName: "b",
                       date: "2021-12-09",
                       additional: "none",
                       TotalPax: 1000,
+                      StatusOrder: "waiting",
                       StatusPayment: "not paided"
                     }
                     ],
@@ -514,6 +520,46 @@ paths:
                     message: "Unauthorized Access",
                     status: "Unauthorized"
                   }
+  /organizer/:id:
+    get:
+      tags:
+        - Organizer
+      summary: Get Profile Organizer by ID
+      responses:
+        '200':
+          description: Success Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/requestGetOrganizerByID'
+              examples:
+                userData1:
+                  description: "Example data organizer"
+                  value: {
+                    data: {
+                      WoName: "a",
+                      email: "alta@alterra.id",
+                      PhoneNumber: "12345678",
+                      urlweb: "www.iniwebloh.com",
+                      description: "ini web organizer",
+                      city: "depok",
+                      address: "Jl.Bekantan",
+                      logo: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
+                    },
+                    message: "success get user",
+                    status: "success"
+                  }
+        '401':
+          description: Failed Response
+          content:
+            application/json:
+              examples:
+                responseData1:
+                  description: Failed
+                  value: {
+                    message: "ID Not Found",
+                    status: "ID Not Fuund"
+                  }
   /order/organizer/my:
     get:
       tags:
@@ -536,6 +582,7 @@ paths:
                       date: "2021-12-07",
                       additional: "none",
                       TotalPax: 1000,
+                      StatusOrder: "waiting",
                       StatusPayment: "not paided"
                     },
                     {
@@ -546,6 +593,7 @@ paths:
                       date: "2021-12-09",
                       additional: "none",
                       TotalPax: 1000,
+                      StatusOrder: "waiting",
                       StatusPayment: "not paided"
                     }
                     ],
@@ -855,91 +903,91 @@ paths:
                     message: "Failed to Reserve",
                     status: "failed"
                   }
-    get:
-      tags:
-        - Reservations
-      summary: Get List Reservations History
-      responses:
-        '200':
-          description: Success Response
-          content:
-            application/json:
-              examples:
-                userData1:
-                  description: "Example data reservation"
-                  value: {
-                    data: [
-                      {
-                        ReservationID: 1,
-                        PackageID: 1,
-                        UserID: 1,
-                        date: "2021-12-07",
-                        additional: "none",
-                        TotalPax: 1000,
-                      },
-                      {
-                        ReservationID: 2,
-                        PackageID: 1,
-                        UserID: 2,
-                        date: "2021-12-09",
-                        additional: "none",
-                        TotalPax: 1000,
-                      },
-                    ],
-                    "message": "success",
-                    "status": "success"
-                  }
-        '400':
-          description: Failed Response
-          content:
-            application/json:
-              examples:
-                responseData1:
-                  description: failed
-                  value: {
-                    message: "failed get reservations",
-                    status: "failed"
-                  }
-  /reservations/check:
-    post:
-      tags:
-        - Reservations
-      summary: Check Available Package
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/requestCheckReserve'
-            examples:
-              userData1:
-                description: "Example data Reservation"
-                value: {
-                  PackageID: 1,
-                  date: "2021-12-30",
-                }
-      responses:
-        '201':
-          description: Success Response
-          content:
-            application/json:
-              examples:
-                responseData1:
-                  description: Available
-                  value: {
-                    message: "Available",
-                    status: "success"
-                  }
-        '400':
-          description: Failed Response
-          content:
-            application/json:
-              examples:
-                responseData1:
-                  description: Not Available
-                  value: {
-                    message: "Not Available",
-                    status: "failed"
-                  }
+  #   get:
+  #     tags:
+  #       - Reservations
+  #     summary: Get List Reservations History
+  #     responses:
+  #       '200':
+  #         description: Success Response
+  #         content:
+  #           application/json:
+  #             examples:
+  #               userData1:
+  #                 description: "Example data reservation"
+  #                 value: {
+  #                   data: [
+  #                     {
+  #                       ReservationID: 1,
+  #                       PackageID: 1,
+  #                       UserID: 1,
+  #                       date: "2021-12-07",
+  #                       additional: "none",
+  #                       TotalPax: 1000,
+  #                     },
+  #                     {
+  #                       ReservationID: 2,
+  #                       PackageID: 1,
+  #                       UserID: 2,
+  #                       date: "2021-12-09",
+  #                       additional: "none",
+  #                       TotalPax: 1000,
+  #                     },
+  #                   ],
+  #                   "message": "success",
+  #                   "status": "success"
+  #                 }
+  #       '400':
+  #         description: Failed Response
+  #         content:
+  #           application/json:
+  #             examples:
+  #               responseData1:
+  #                 description: failed
+  #                 value: {
+  #                   message: "failed get reservations",
+  #                   status: "failed"
+  #                 }
+  # /reservations/check:
+  #   post:
+  #     tags:
+  #       - Reservations
+  #     summary: Check Available Package
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/requestCheckReserve'
+  #           examples:
+  #             userData1:
+  #               description: "Example data Reservation"
+  #               value: {
+  #                 PackageID: 1,
+  #                 date: "2021-12-30",
+  #               }
+  #     responses:
+  #       '201':
+  #         description: Success Response
+  #         content:
+  #           application/json:
+  #             examples:
+  #               responseData1:
+  #                 description: Available
+  #                 value: {
+  #                   message: "Available",
+  #                   status: "success"
+  #                 }
+  #       '400':
+  #         description: Failed Response
+  #         content:
+  #           application/json:
+  #             examples:
+  #               responseData1:
+  #                 description: Not Available
+  #                 value: {
+  #                   message: "Not Available",
+  #                   status: "failed"
+  #                 }
   /reservations/:id:
     get:
       tags:
@@ -959,10 +1007,12 @@ paths:
                         ReservationID: 1,
                         PackageID: 1,
                         PackageName: "Nikah Muda Asoy",
-                        UserID: 1,
+                        ProfileWoID: 1,
+                        WoName: "a",
                         date: "2021-12-07",
                         additional: "none",
                         TotalPax: 1000,
+                        StatusOrder: "waiting",
                         StatusPayment: "not paided"
                       },
                     ],
