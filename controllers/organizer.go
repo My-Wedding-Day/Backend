@@ -40,13 +40,13 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name cannot less than 5 characters"))
 	}
 	// Check Organizer Email is Exist
-	emailCheck, err := database.CheckDatabase("email", organizer.Email)
-	if emailCheck > 0 || err != nil {
+	emailCheck, _ := database.CheckDatabase("email", organizer.Email)
+	if emailCheck > 0 {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email was used, try another one"))
 	}
 	// Check Organizer Business name is Exist
-	nameCheck, err := database.CheckDatabase("wo_name", organizer.WoName)
-	if nameCheck > 0 || err != nil {
+	nameCheck, _ := database.CheckDatabase("wo_name", organizer.WoName)
+	if nameCheck > 0 {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name was used, try another one"))
 	}
 	// REGEX
@@ -70,8 +70,8 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("password or phone number cannot less than 8 characters"))
 	}
 	// Check Phone number existing
-	phonecheck, er := database.CheckDatabase("phone_number", organizer.PhoneNumber)
-	if phonecheck > 0 || er != nil {
+	phonecheck, _ := database.CheckDatabase("phone_number", organizer.PhoneNumber)
+	if phonecheck > 0 {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone number was used, try another one"))
 	}
 	// hash password bcrypt
