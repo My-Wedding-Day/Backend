@@ -34,7 +34,7 @@ func RegisterUsersController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
 	// Check Format Name
-	pattern = `^(\w+ ?)*$`
+	pattern = `^\w(\w+ ?)*$`
 	regex, _ := regexp.Compile(pattern)
 	matched = regex.Match([]byte(user.Name))
 	if !matched {
