@@ -43,6 +43,7 @@ func New() *echo.Echo {
 	r.GET("/organizer/profile", controllers.GetProfileOrganizerController)
 	r.PUT("/organizer/profile", controllers.UpdateOrganizerController)
 	r.PUT("/organizer/profile/photo", controllers.UpdatePhotoOrganizerController)
+	r.PUT("/organizer/profile/document", controllers.UpdateDocumentsOrganizerController)
 
 	r.POST("/package", controllers.InsertPackageController)
 	return e

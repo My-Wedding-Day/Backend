@@ -32,21 +32,45 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
 	}
 	// Check data cannot be empty
-	if organizer.WoName == "" || organizer.Email == "" || organizer.Password == "" || organizer.City == "" || organizer.Address == "" || organizer.PhoneNumber == "" {
+	if organizer.Email == "" || organizer.City == "" || organizer.Address == "" {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
 	}
+	// Check Name cannot less than 5 characters
+	if len(organizer.WoName) < 5 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name cannot less than 5 characters"))
+	}
+	// Check Organizer Email is Exist
+	emailCheck, err := database.CheckDatabase("email", organizer.Email)
+	if emailCheck > 0 || err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email was used, try another one"))
+	}
+	// Check Organizer Business name is Exist
+	nameCheck, err := database.CheckDatabase("wo_name", organizer.WoName)
+	if nameCheck > 0 || err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name was used, try another one"))
+	}
+	// REGEX
+	var pattern string
+	var matched bool
+	// Check Format Name
+	pattern = `^(\w+ ?)*$`
+	regex, _ := regexp.Compile(pattern)
+	matched = regex.Match([]byte(organizer.WoName))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid format name"))
+	}
 	// Check Format Email
-	pattern := `^\w+@\w+\.\w+$`
-	matched, _ := regexp.Match(pattern, []byte(organizer.Email))
+	pattern = `^\w+@\w+\.\w+$`
+	matched, _ = regexp.Match(pattern, []byte(organizer.Email))
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
-	// Check Organizer is Exist
-	row, err := database.FindOrganizer(organizer)
-	if row != nil || err != nil {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email or bussinese name was used, try another one"))
+	// Check Length of Character of PhoneNumber and Password
+	if len(organizer.PhoneNumber) < 9 || len(organizer.Password) < 8 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("password or phone number cannot less than 8 characters"))
 	}
-	phonecheck, er := database.CheckPhoneNumber(organizer.PhoneNumber)
+	// Check Phone number existing
+	phonecheck, er := database.CheckDatabase("phone_number", organizer.PhoneNumber)
 	if phonecheck > 0 || er != nil {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone number was used, try another one"))
 	}
@@ -107,8 +131,59 @@ func UpdateOrganizerController(c echo.Context) error {
 	organizer := models.Organizer{}
 	c.Bind(&organizer)
 	organizer_id := middlewares.ExtractTokenUserId(c)
-	_, err := database.EditOrganizer(organizer, organizer_id)
-	if err != nil {
+	organizerData, _ := database.FindOrganizerById(organizer_id)
+	// Check data cannot be empty
+	if organizer.Email == "" {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
+	}
+	// Check Name cannot less than 5 characters
+	if len(organizer.WoName) < 5 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name cannot less than 5 characters"))
+	}
+	// Check Email Organizer is Exist
+	if organizer.Email != organizerData.Email {
+		row, err := database.CheckDatabase("email", organizer.Email)
+		if row > 0 || err != nil {
+			return c.JSON(http.StatusBadRequest, responses.StatusFailed("email was used, try another one"))
+		}
+	}
+	// Check Business name Organizer is Exist
+	if organizer.WoName != organizerData.WoName {
+		row, err := database.CheckDatabase("wo_name", organizer.WoName)
+		if row > 0 || err != nil {
+			return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name was used, try another one"))
+		}
+	}
+	// REGEX
+	var pattern string
+	var matched bool
+	// Check Format Name
+	pattern = `^(\w+ ?)*$`
+	regex, _ := regexp.Compile(pattern)
+	matched = regex.Match([]byte(organizer.WoName))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid format name"))
+	}
+	// Check Format Email
+	pattern = `^\w+@\w+\.\w+$`
+	matched, _ = regexp.Match(pattern, []byte(organizer.Email))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
+	}
+	// Check Length of Character of PhoneNumber and Password
+	if len(organizer.PhoneNumber) < 9 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone number cannot less than 9 characters"))
+	}
+	// Check Phone number existing
+	if organizer.PhoneNumber != organizerData.PhoneNumber {
+		phonecheck, er := database.CheckDatabase("phone_number", organizer.PhoneNumber)
+		if phonecheck > 0 || er != nil {
+			return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone number was used, try another one"))
+		}
+	}
+	// Edit into database
+	_, e := database.EditOrganizer(organizer, organizer_id)
+	if e != nil {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
 	}
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success edit data"))
@@ -162,6 +237,56 @@ func UpdatePhotoOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
 	}
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success upload photo"))
+}
+
+// Insert Document Organizer Function
+func UpdateDocumentsOrganizerController(c echo.Context) error {
+	organizer_id := middlewares.ExtractTokenUserId(c)
+	dataWo, _ := database.FindOrganizerById(organizer_id)
+	// Process Upload Photo to Google Cloud
+	bucket := "alta_wedding"
+	var err error
+	ctx := appengine.NewContext(c.Request())
+	storageClient, err = storage.NewClient(ctx, option.WithCredentialsFile("keys.json"))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(err.Error()))
+	}
+	f, uploaded_file, err := c.Request().FormFile("file")
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(err.Error()))
+	}
+	defer f.Close()
+	fileExtensions := map[string]bool{"jpg": true, "jpeg": true, "png": true, "pdf": true}
+	ext := strings.Split(uploaded_file.Filename, ".")
+	extension := ext[len(ext)-1]
+	if !fileExtensions[extension] {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailedDataPhoto("invalid type"))
+	}
+
+	t := time.Now()
+	formatted := fmt.Sprintf("%d%02d%02dT%02d:%02d:%02d",
+		t.Year(), t.Month(), t.Day(),
+		t.Hour(), t.Minute(), t.Second())
+	organizerName := strings.ReplaceAll(dataWo.WoName, " ", "+")
+	uploaded_file.Filename = fmt.Sprintf("%v-%v.%v", organizerName, formatted, extension)
+	sw := storageClient.Bucket(bucket).Object(uploaded_file.Filename).NewWriter(ctx)
+	if _, err := io.Copy(sw, f); err != nil {
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(err.Error()))
+	}
+	if err := sw.Close(); err != nil {
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(err.Error()))
+	}
+	u, err := url.Parse("https://storage.googleapis.com/" + bucket + "/" + sw.Attrs().Name)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(err.Error()))
+	}
+	// Insert URL
+	urlDocument := fmt.Sprintf("%v", u)
+	_, e := database.EditDocumentOrganizer(urlDocument, organizer_id)
+	if e != nil {
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
+	}
+	return c.JSON(http.StatusCreated, responses.StatusSuccess("success upload document"))
 }
 
 // Testing Get User
