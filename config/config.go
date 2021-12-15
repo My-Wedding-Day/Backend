@@ -47,3 +47,29 @@ func InitalMigration() {
 	DB.AutoMigrate(&models.Package{})
 	DB.AutoMigrate(&models.Photo{})
 }
+
+// Initia Database Unit Testing
+func InitDBTest() {
+	dbconfig := GetConfig()
+	// Sesuaikan dengan database kalian
+	connect := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8&parseTime=True&loc=Local",
+		dbconfig["DB_USERNAME"],
+		dbconfig["DB_PASSWORD"],
+		dbconfig["DB_HOST"],
+		dbconfig["DB_PORT"],
+		dbconfig["DB_NAME_TEST"])
+
+	// Sesuaikan dengan database kalian
+	var err error
+	DB, err = gorm.Open(mysql.Open(connect), &gorm.Config{})
+	if err != nil {
+		panic(err)
+	}
+	InitalMigrationTest()
+}
+
+// Function Initial Migration (Tabel)
+func InitalMigrationTest() {
+	DB.Migrator().DropTable(&models.Organizer{})
+	DB.AutoMigrate(&models.Organizer{})
+}

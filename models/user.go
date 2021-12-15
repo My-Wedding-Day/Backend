@@ -16,3 +16,14 @@ type User struct {
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
+
+type UserLogin struct {
+	Email    string `json:"email" form:"email"`
+	Password string `json:"password" form:"password"`
+}
+
+type Profile struct {
+	ID    int
+	Name  string
+	Email string
+}

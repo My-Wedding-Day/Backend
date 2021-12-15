@@ -3,6 +3,7 @@ package controllers
 import (
 	"alta-wedding/lib/database"
 	"alta-wedding/lib/responses"
+	"alta-wedding/middlewares"
 	"alta-wedding/models"
 	"fmt"
 	"io"
@@ -24,9 +25,10 @@ func InsertPackageController(c echo.Context) error {
 	c.Bind(&input)
 	duplicate, _ := database.GetPackageByName(input.PackageName)
 	if duplicate > 0 {
-		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("package name was user, try input another package name"))
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("package name was use, try input another package name"))
 	}
-
+	organizer_id := middlewares.ExtractTokenUserId(c)
+	input.Organizer_ID = organizer_id
 	// Menyimpan data barang baru menggunakan fungsi InsertPackage
 	data, e := database.InsertPackage(input)
 	if e != nil {
