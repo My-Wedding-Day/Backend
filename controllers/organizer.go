@@ -53,7 +53,7 @@ func CreateOrganizerController(c echo.Context) error {
 	var pattern string
 	var matched bool
 	// Check Format Name
-	pattern = `^(\w+ ?)*$`
+	pattern = `^\w(\w+ ?)*$`
 	regex, _ := regexp.Compile(pattern)
 	matched = regex.Match([]byte(organizer.WoName))
 	if !matched {
