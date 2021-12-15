@@ -87,3 +87,13 @@ func InsertPackageController(c echo.Context) error {
 
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success to input package"))
 }
+
+// Controller untuk mendapatkan seluruh data Packages
+func GetAllPackageController(c echo.Context) error {
+	// Mendapatkan data satu buku menggunakan fungsi GetPackages
+	paket, e := database.GetPackages()
+	if e != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to fetch packages"))
+	}
+	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get all packages", paket))
+}
