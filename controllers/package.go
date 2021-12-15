@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -86,4 +87,39 @@ func InsertPackageController(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success to input package"))
+}
+
+// Controller untuk mendapatkan seluruh data Packages
+func GetAllPackageController(c echo.Context) error {
+	// Mendapatkan data satu buku menggunakan fungsi GetPackages
+	paket, e := database.GetPackages()
+	if e != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to fetch packages"))
+	}
+	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get all packages", paket))
+}
+
+// // Controller untuk mendapatkan seluruh data Packages by token
+// func GetAllPackageByTokenController(c echo.Context) error {
+// 	idOrganizer := middlewares.ExtractTokenOrganizerId(c)
+// 	// Mendapatkan data satu buku menggunakan fungsi GetPackages
+// 	paket, e := database.GetPackagesByToken(idOrganizer)
+// 	if e != nil {
+// 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to fetch packages"))
+// 	}
+// 	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get all packages by token", paket))
+// }
+
+// Controller untuk mendapatkan seluruh data Packages by ID
+func GetPackageByIDController(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("false param"))
+	}
+	// Mendapatkan data satu buku menggunakan fungsi GetPackages
+	paket, e := database.GetPackagesByID(id)
+	if e != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to fetch packages"))
+	}
+	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get all packages by ID", paket))
 }
