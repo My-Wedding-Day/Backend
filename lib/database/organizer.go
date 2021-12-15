@@ -29,6 +29,15 @@ func CheckPhoneNumber(phone string) (int64, error) {
 	return tx.RowsAffected, nil
 }
 
+func CheckDatabase(coloumn string, data string) (int64, error) {
+	organizer := models.Organizer{}
+	tx := config.DB.Where(coloumn+"=?", data).Find(&organizer)
+	if tx.Error != nil {
+		return -1, tx.Error
+	}
+	return tx.RowsAffected, nil
+}
+
 // Fungsi untuk mengambil dan mencari data organizer by email di database
 func FindOrganizer(input models.Organizer) (*models.Organizer, error) {
 	organizer := models.Organizer{}
@@ -95,6 +104,15 @@ func EditOrganizer(reqOrganizer models.Organizer, organizer_id int) (*models.Org
 // Fungsi untuk Edit Photo Profile Organizer
 func EditPhotoOrganizer(url string, organizer_id int) (int64, error) {
 	tx := config.DB.Model(&models.Organizer{}).Where("id=?", organizer_id).Update("logo", url)
+	if tx.Error != nil {
+		return -1, tx.Error
+	}
+	return tx.RowsAffected, nil
+}
+
+// Fungsi untuk Edit Photo Profile Organizer
+func EditDocumentOrganizer(url string, organizer_id int) (int64, error) {
+	tx := config.DB.Model(&models.Organizer{}).Where("id=?", organizer_id).Update("proof", url)
 	if tx.Error != nil {
 		return -1, tx.Error
 	}
