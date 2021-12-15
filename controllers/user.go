@@ -14,17 +14,42 @@ import (
 //register user
 func RegisterUsersController(c echo.Context) error {
 	var user models.User
+	// REGEX
+	var pattern string
+	var matched bool
+	// Bind all data from JSON
 	c.Bind(&user)
+	// Check data cannot be empty
+	if user.Name == "" || user.Email == "" {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
+	}
+	// Check Name cannot less than 5 characters
+	if len(user.Name) < 5 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("name cannot less than 5 characters"))
+	}
 	// Check Format Email
-	pattern := `^\w+@\w+\.\w+$`
-	matched, _ := regexp.Match(pattern, []byte(user.Email))
+	pattern = `^\w+@\w+\.\w+$`
+	matched, _ = regexp.Match(pattern, []byte(user.Email))
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
+	// Check Format Name
+	pattern = `^(\w+ ?)*$`
+	regex, _ := regexp.Compile(pattern)
+	matched = regex.Match([]byte(user.Name))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid format name"))
+	}
+	// Check Length of Character of Password
+	if len(user.Password) < 8 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("password cannot less than 8 characters"))
+	}
+	// Check Email is Exist
 	duplicate, _ := database.GetUserByEmail(user.Email)
 	if duplicate > 0 {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Email was used, try another email"))
 	}
+	// hash password bcrypt
 	Password, _ := database.GeneratehashPassword(user.Password)
 	user.Password = Password
 	user.Role = "User"
