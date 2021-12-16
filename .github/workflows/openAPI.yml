@@ -222,6 +222,7 @@ paths:
                   description: "Example data user"
                   value: {
                     data: {
+                      ID: 1,
                       name: "a",
                       email: "alta@alterra.id",
                     },
