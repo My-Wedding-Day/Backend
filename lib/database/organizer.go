@@ -114,7 +114,7 @@ func FindProfilOrganizer(id int) (*models.ProfileRespon, error) {
 func GetListReservations(organizer_id int) ([]models.ReservationListRespon, error) {
 	listOrder := []models.ReservationListRespon{}
 	tx := config.DB.Table("reservations").Select(
-		"reservations.id, packages.package_name, users.name, reservations.status_order").
+		"reservations.id, reservations.package_id, packages.package_name, users.name, reservations.date, reservations.additional, reservations.total_pax, reservations.status_order,reservations.status_payment").
 		Joins("join packages on packages.id = reservations.package_id").
 		Joins("join users on users.id = reservations.user_id").
 		Where("reservations.deleted_at is NULL").Find(&listOrder)
@@ -123,6 +123,15 @@ func GetListReservations(organizer_id int) ([]models.ReservationListRespon, erro
 	}
 	return listOrder, nil
 
+}
+
+// Fungsi untuk Acc Reservasi User
+func AcceptDecline(reservation_id int, status string) (int64, error) {
+	tx := config.DB.Model(models.Reservation{}).Where("id=?", reservation_id).Update("status_order", status)
+	if tx.Error != nil {
+		return -1, tx.Error
+	}
+	return tx.RowsAffected, nil
 }
 
 // Fungsi untuk enkripsi password organizer
