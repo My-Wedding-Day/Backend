@@ -380,6 +380,7 @@ paths:
                   WoName: "a",
                   email: "alta@alterra.id",
                   password: "a",
+                  PhoneNumber: "12312312123",
                   city: "depok",
                   address: "Jl. Raya Bedahan, Bedahan, Kec. Sawangan, Kota Depok, Jawa Barat 16519"
                 }
@@ -1153,6 +1154,9 @@ components:
           type: string
         },
         "password":{
+          type: string
+        },
+        "PhoneNumber":{
           type: string
         },
         "city":{
