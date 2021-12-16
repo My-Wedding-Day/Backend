@@ -50,5 +50,7 @@ func New() *echo.Echo {
 	r.POST("/package", controllers.InsertPackageController)
 	e.GET("/package", controllers.GetAllPackageController)
 	e.GET("/package/:id", controllers.GetPackageByIDController)
+	r.GET("/package/my", controllers.GetMyPackageController)
+
 	return e
 }

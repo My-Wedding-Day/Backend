@@ -126,6 +126,16 @@ func GetProileOrganizerbyIDController(c echo.Context) error {
 	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get organizer", respon))
 }
 
+// Get my Package for Organizer
+func GetMyPackageController(c echo.Context) error {
+	organizer_id := middlewares.ExtractTokenUserId(c)
+	mypackages, err := database.GetPackagesByToken(organizer_id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
+	}
+	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get my packages", mypackages))
+}
+
 // Update/Edit Profile Organizer Function
 func UpdateOrganizerController(c echo.Context) error {
 	organizer := models.Organizer{}
