@@ -20,15 +20,7 @@ func FindOrganizerByEmail(email string) (*models.Organizer, error) {
 	return nil, nil
 }
 
-func CheckPhoneNumber(phone string) (int64, error) {
-	organizer := models.Organizer{}
-	tx := config.DB.Where("phone_number=?", phone).Find(&organizer)
-	if tx.Error != nil {
-		return -1, tx.Error
-	}
-	return tx.RowsAffected, nil
-}
-
+// Fungsi untuk mengecek ketersediaan data di database
 func CheckDatabase(coloumn string, data string) (int64, error) {
 	organizer := models.Organizer{}
 	tx := config.DB.Where(coloumn+"=?", data).Find(&organizer)
@@ -36,19 +28,6 @@ func CheckDatabase(coloumn string, data string) (int64, error) {
 		return -1, tx.Error
 	}
 	return tx.RowsAffected, nil
-}
-
-// Fungsi untuk mengambil dan mencari data organizer by email di database
-func FindOrganizer(input models.Organizer) (*models.Organizer, error) {
-	organizer := models.Organizer{}
-	tx := config.DB.Where("email=? OR wo_name=?", input.Email, input.WoName).Find(&organizer)
-	if tx.Error != nil {
-		return nil, tx.Error
-	}
-	if tx.RowsAffected > 0 {
-		return &organizer, nil
-	}
-	return nil, nil
 }
 
 // Fungsi untuk mengambil dan mencari data organizer by id di database
@@ -110,7 +89,7 @@ func EditPhotoOrganizer(url string, organizer_id int) (int64, error) {
 	return tx.RowsAffected, nil
 }
 
-// Fungsi untuk Edit Photo Profile Organizer
+// Fungsi untuk Edit Document Profile Organizer
 func EditDocumentOrganizer(url string, organizer_id int) (int64, error) {
 	tx := config.DB.Model(&models.Organizer{}).Where("id=?", organizer_id).Update("proof", url)
 	if tx.Error != nil {
@@ -129,6 +108,21 @@ func FindProfilOrganizer(id int) (*models.ProfileRespon, error) {
 		return nil, tx.Error
 	}
 	return &organizer, nil
+}
+
+// Fungsi untuk mengambil List Data Reservation
+func GetListReservations(organizer_id int) ([]models.ReservationListRespon, error) {
+	listOrder := []models.ReservationListRespon{}
+	tx := config.DB.Table("reservations").Select(
+		"reservations.id, packages.package_name, users.name, reservations.status_order").
+		Joins("join packages on packages.id = reservations.package_id").
+		Joins("join users on users.id = reservations.user_id").
+		Where("reservations.deleted_at is NULL").Find(&listOrder)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return listOrder, nil
+
 }
 
 // Fungsi untuk enkripsi password organizer
