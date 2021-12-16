@@ -82,8 +82,8 @@ func GetPackagesByToken(id int) (interface{}, error) {
 }
 
 // Fungsi untuk mendapatkan seluruh data packages by id
-func GetPackagesByID(id int) (interface{}, error) {
-	var paket []GetPackageStruct
+func GetPackagesByID(id int) (*GetPackageStruct, error) {
+	var paket GetPackageStruct
 
 	query := config.DB.Table("packages").Select(
 		"organizers.wo_name, organizers.city, organizers.address, photos.url_photo, packages.package_desc, packages.pax, packages.price, packages.package_name, packages.organizer_id, packages.id").Joins(
@@ -94,7 +94,22 @@ func GetPackagesByID(id int) (interface{}, error) {
 		return nil, query.Error
 	}
 	if query.RowsAffected == 0 {
-		return 0, query.Error
+		return nil, nil
 	}
-	return paket, nil
+	return &paket, nil
+}
+
+// Fungsi untuk menghapus satu data product berdasarkan id package
+func DeletePackage(id int) (interface{}, error) {
+	queryPackage := config.DB.Delete(&models.Package{}, id)
+	queryPhoto := config.DB.Where("package_id = ?", id).Delete(&models.Photo{})
+
+	if queryPackage.Error != nil || queryPhoto.Error != nil {
+		return nil, queryPackage.Error
+	}
+
+	if queryPackage.RowsAffected == 0 || queryPhoto.RowsAffected == 0 {
+		return 0, queryPackage.Error
+	}
+	return "deleted", nil
 }
