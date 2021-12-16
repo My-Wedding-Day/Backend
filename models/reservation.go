@@ -18,3 +18,10 @@ type Reservation struct {
 	UpdatedAt    time.Time
 	DeletedAt    gorm.DeletedAt `gorm:"index"`
 }
+
+type BodyDateIn struct {
+	Package_ID int    `json:"package_id" form:"package_id"`
+	User_ID    int    `json:"user_id" form:"user_id"`
+	DateIn     string `json:"datein" form:"datein"`
+	DateOut    string `json:"dateout" form:"dateout"`
+}
