@@ -67,3 +67,11 @@ func UpdateUser(id int, User models.User) (models.User, error) {
 	}
 	return user, nil
 }
+
+func DeleteUser(id int) (interface{}, error) {
+	var userid models.User
+	if err := config.DB.Where("id = ?", id).Delete(&userid).Error; err != nil {
+		return nil, err
+	}
+	return userid, nil
+}
