@@ -65,6 +65,12 @@ func CreateOrganizerController(c echo.Context) error {
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
+	// Check Format Email
+	pattern = `^[0-9_]*$`
+	matched, _ = regexp.Match(pattern, []byte(organizer.PhoneNumber))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone must be number"))
+	}
 	// Check Length of Character of PhoneNumber and Password
 	if len(organizer.PhoneNumber) < 9 || len(organizer.Password) < 8 {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("password or phone number cannot less than 8 characters"))
@@ -134,6 +140,16 @@ func GetMyPackageController(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
 	}
 	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get my packages", mypackages))
+}
+
+// Get My Reservation List From Users Order
+func GetMyReservationListController(c echo.Context) error {
+	organizer_id := middlewares.ExtractTokenUserId(c)
+	mylistorder, err := database.GetListReservations(organizer_id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
+	}
+	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get my list order", mylistorder))
 }
 
 // Update/Edit Profile Organizer Function
