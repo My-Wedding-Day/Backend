@@ -72,6 +72,12 @@ func CreateOrganizerController(c echo.Context) error {
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone must be number"))
 	}
+	// Check Format Address
+	pattern = `^[a-zA-Z]([a-zA-Z.0-9,]+ ?)*$`
+	matched, _ = regexp.Match(pattern, []byte(organizer.Address))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Address must be valid"))
+	}
 	// Check Address
 	_, _, Err := util.GetGeocodeLocations(organizer.Address)
 	if Err != nil {
