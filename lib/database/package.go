@@ -8,6 +8,19 @@ import (
 type GetPackageStruct struct {
 	ID           int
 	Organizer_ID int
+	Wo_Name      string
+	City         string
+	Address      string
+	PackageName  string
+	Price        int
+	Pax          int
+	PackageDesc  string
+	UrlPhoto     string
+}
+
+type GetPackageAllStruct struct {
+	ID           int
+	Organizer_ID int
 	PackageName  string
 	Price        int
 	Pax          int
@@ -36,7 +49,7 @@ func GetPackageByName(PackageName string) (int64, error) {
 
 // Fungsi untuk mendapatkan seluruh data packages
 func GetPackages() (interface{}, error) {
-	var paket []GetPackageStruct
+	var paket []GetPackageAllStruct
 
 	query := config.DB.Table("packages").Select(
 		"photos.url_photo, packages.package_desc, packages.pax, packages.price, packages.package_name, packages.organizer_id, packages.id").Joins(
@@ -53,12 +66,12 @@ func GetPackages() (interface{}, error) {
 
 // Fungsi untuk mendapatkan seluruh data packages by id organizer
 func GetPackagesByToken(id int) (interface{}, error) {
-	var paket []GetPackageStruct
+	var paket []GetPackageAllStruct
 
 	query := config.DB.Table("packages").Select(
 		"photos.url_photo, packages.package_desc, packages.pax, packages.price, packages.package_name, packages.organizer_id, packages.id").Joins(
 		"join photos on packages.id = photos.package_id").Where(
-		"package.organizer_id = ? AND packages.deleted_at is NULL", id).Find(&paket)
+		"packages.organizer_id = ? AND packages.deleted_at is NULL", id).Find(&paket)
 	if query.Error != nil {
 		return nil, query.Error
 	}
@@ -73,8 +86,9 @@ func GetPackagesByID(id int) (interface{}, error) {
 	var paket []GetPackageStruct
 
 	query := config.DB.Table("packages").Select(
-		"photos.url_photo, packages.package_desc, packages.pax, packages.price, packages.package_name, packages.organizer_id, packages.id").Joins(
-		"join photos on packages.id = photos.package_id").Where(
+		"organizers.wo_name, organizers.city, organizers.address, photos.url_photo, packages.package_desc, packages.pax, packages.price, packages.package_name, packages.organizer_id, packages.id").Joins(
+		"join photos on packages.id = photos.package_id").Joins(
+		"join organizers on organizers.id = packages.organizer_id").Where(
 		"packages.id = ? AND packages.deleted_at is NULL", id).Find(&paket)
 	if query.Error != nil {
 		return nil, query.Error
