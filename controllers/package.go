@@ -5,6 +5,7 @@ import (
 	"alta-wedding/lib/responses"
 	"alta-wedding/middlewares"
 	"alta-wedding/models"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -111,4 +112,42 @@ func GetPackageByIDController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to fetch packages"))
 	}
 	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get all packages by ID", paket))
+}
+
+func DeletePackageController(c echo.Context) error {
+	// Mendapatkan id cart yang diingikan client
+	id, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("false param"))
+	}
+
+	// Pengecekan apakah id package memiliki id user yang sama dengan id token
+	idToken := middlewares.ExtractTokenUserId(c)
+	getPackage, err := database.GetPackagesByID(id)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to fetch package"))
+	}
+	getPackageJSON, err := json.Marshal(getPackage)
+	if err != nil {
+		panic(err)
+	}
+
+	var responsePackage models.Package
+	json.Unmarshal([]byte(getPackageJSON), &responsePackage)
+
+	if getPackage.Organizer_ID != idToken {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Unauthorized Access"))
+	}
+
+	// Mengapus data satu product menggunakan fungsi DeleteShoppingCart
+	paket, e := database.DeletePackage(id)
+	if e != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to delete package"))
+	}
+	if paket == 0 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("package id not found"))
+	}
+	return c.JSON(http.StatusOK, responses.StatusSuccess("success deleted package"))
 }
