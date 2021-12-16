@@ -75,7 +75,7 @@ func LoginUsersController(c echo.Context) error {
 	return c.JSON(http.StatusCreated, responses.StatusSuccessLogin("login success", users.ID, token, users.Name, users.Role))
 }
 
-//get user by id
+//get user
 func GetUsersController(c echo.Context) error {
 	loginuser := middlewares.ExtractTokenUserId(c)
 	datauser, e := database.GetUser(loginuser)
@@ -90,7 +90,7 @@ func GetUsersController(c echo.Context) error {
 	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get user", respon))
 }
 
-//update user by id
+//update user
 func UpdateUserController(c echo.Context) error {
 	var user models.User
 	c.Bind(&user)
@@ -100,4 +100,16 @@ func UpdateUserController(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal service error"))
 	}
 	return c.JSON(http.StatusOK, responses.StatusSuccess("success update user"))
+}
+
+//delete user by id
+func DeleteUserController(c echo.Context) error {
+	var user models.User
+	c.Bind(&user)
+	deleteuser := middlewares.ExtractTokenUserId(c)
+	_, e := database.DeleteUser(deleteuser)
+	if e != nil {
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal service error"))
+	}
+	return c.JSON(http.StatusOK, responses.StatusSuccess("success delete user"))
 }

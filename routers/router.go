@@ -34,6 +34,7 @@ func New() *echo.Echo {
 	// ------------------------------------------------------------------
 	r.GET("/users/profile", controllers.GetUsersController)
 	r.PUT("/users/profile", controllers.UpdateUserController)
+	r.DELETE("/users/profile", controllers.DeleteUserController)
 	// ------------------------------------------------------------------
 	// LOGIN & REGISTER ORGANIZER
 	// ------------------------------------------------------------------
@@ -50,5 +51,7 @@ func New() *echo.Echo {
 	r.POST("/package", controllers.InsertPackageController)
 	e.GET("/package", controllers.GetAllPackageController)
 	e.GET("/package/:id", controllers.GetPackageByIDController)
+	r.GET("/package/my", controllers.GetMyPackageController)
+
 	return e
 }
