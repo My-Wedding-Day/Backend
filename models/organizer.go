@@ -55,8 +55,17 @@ type ProfileRespon struct {
 }
 
 type ReservationListRespon struct {
-	ID           int
-	PackageName  string
-	Name         string
-	Status_Order string
+	ID             int
+	Package_ID     int
+	PackageName    string
+	Name           string
+	Date           string
+	Additional     string
+	Total_Pax      int
+	Status_Order   string
+	Status_Payment string
+}
+
+type AcceptBody struct {
+	Status_Order string `json:"status_order" form:"status_order"`
 }

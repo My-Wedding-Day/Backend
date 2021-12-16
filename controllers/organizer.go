@@ -5,6 +5,7 @@ import (
 	"alta-wedding/lib/responses"
 	"alta-wedding/middlewares"
 	"alta-wedding/models"
+	"alta-wedding/util"
 	"fmt"
 	"io"
 	"net/http"
@@ -32,7 +33,7 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
 	}
 	// Check data cannot be empty
-	if organizer.Email == "" || organizer.City == "" || organizer.Address == "" {
+	if organizer.Email == "" || organizer.City == "" {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
 	}
 	// Check Name cannot less than 5 characters
@@ -65,11 +66,16 @@ func CreateOrganizerController(c echo.Context) error {
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
-	// Check Format Email
-	pattern = `^[0-9_]*$`
+	// Check Format Phone Number
+	pattern = `^[0-9]*$`
 	matched, _ = regexp.Match(pattern, []byte(organizer.PhoneNumber))
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone must be number"))
+	}
+	// Check Address
+	_, _, Err := util.GetGeocodeLocations(organizer.Address)
+	if Err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Address "+Err.Error()))
 	}
 	// Check Length of Character of PhoneNumber and Password
 	if len(organizer.PhoneNumber) < 9 || len(organizer.Password) < 8 {
@@ -151,6 +157,24 @@ func GetMyReservationListController(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get my list order", mylistorder))
 }
+
+// Fitur Accept/Decline Reservation
+// func AcceptDeclineController(c echo.Context) error {
+// 	reservation_id, err := strconv.Atoi(c.Param("id"))
+// 	if err != nil {
+// 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("false param"))
+// 	}
+// 	request := models.AcceptBody{}
+// 	c.Bind(&request)
+// 	if request.Status_Order != "accept" || request.Status_Order != "decline" {
+// 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
+// 	}
+// 	_, err := database.AcceptDecline(reservation_id, request.Status_Order)
+// 	if err != nil {
+// 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
+// 	}
+// 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success edit data"))
+// }
 
 // Update/Edit Profile Organizer Function
 func UpdateOrganizerController(c echo.Context) error {
