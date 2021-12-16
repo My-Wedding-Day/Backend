@@ -58,7 +58,7 @@ func GetPackagesByToken(id int) (interface{}, error) {
 	query := config.DB.Table("packages").Select(
 		"photos.url_photo, packages.package_desc, packages.pax, packages.price, packages.package_name, packages.organizer_id, packages.id").Joins(
 		"join photos on packages.id = photos.package_id").Where(
-		"package.organizer_id = ? AND packages.deleted_at is NULL", id).Find(&paket)
+		"packages.organizer_id = ? AND packages.deleted_at is NULL", id).Find(&paket)
 	if query.Error != nil {
 		return nil, query.Error
 	}
