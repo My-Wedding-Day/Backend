@@ -72,7 +72,7 @@ func FalseParamResponse() map[string]interface{} {
 // function response failed to reserve
 func ReservationFailed() map[string]interface{} {
 	result := map[string]interface{}{
-		"code":    http.StatusBadRequest,
+		"status":  "failed",
 		"message": "Failed to Reserve",
 	}
 	return result
@@ -81,8 +81,8 @@ func ReservationFailed() map[string]interface{} {
 // function response Success to reserve
 func ReservationSuccess() map[string]interface{} {
 	result := map[string]interface{}{
-		"code":    http.StatusOK,
 		"message": "Success to Reserve",
+		"status":  "success",
 	}
 	return result
 }
