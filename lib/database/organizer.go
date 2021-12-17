@@ -117,21 +117,29 @@ func GetListReservations(organizer_id int) ([]models.ReservationListRespon, erro
 		"reservations.id, reservations.package_id, packages.package_name, users.name, reservations.date, reservations.additional, reservations.total_pax, reservations.status_order,reservations.status_payment").
 		Joins("join packages on packages.id = reservations.package_id").
 		Joins("join users on users.id = reservations.user_id").
-		Where("reservations.deleted_at is NULL").Find(&listOrder)
+		Where("packages.organizer_id=? AND reservations.deleted_at is NULL", organizer_id).Find(&listOrder)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
 	return listOrder, nil
-
 }
 
 // Fungsi untuk Acc Reservasi User
-func AcceptDecline(reservation_id int, status string) (int64, error) {
-	tx := config.DB.Model(models.Reservation{}).Where("id=?", reservation_id).Update("status_order", status)
-	if tx.Error != nil {
-		return -1, tx.Error
+func AcceptDecline(reservation_id int, status string, organizer_id int) (int64, error) {
+	reserve := models.Reservation{}
+	query := config.DB.Table("reservations").Select("*").
+		Joins("join packages on packages.id = reservations.package_id").
+		Where("reservations.id=? AND packages.organizer_id=? AND reservations.deleted_at is NULL", reservation_id, organizer_id).Find(&reserve)
+
+	if query.Error != nil {
+		return -1, query.Error
 	}
-	return tx.RowsAffected, nil
+	if query.RowsAffected > 0 {
+		if err := config.DB.Model(models.Reservation{}).Where("id=?", reservation_id).Update("status_order", status).Error; err != nil {
+			return -1, err
+		}
+	}
+	return query.RowsAffected, nil
 }
 
 // Fungsi untuk enkripsi password organizer
