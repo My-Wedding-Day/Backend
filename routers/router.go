@@ -46,6 +46,7 @@ func New() *echo.Echo {
 	r.PUT("/organizer/profile/photo", controllers.UpdatePhotoOrganizerController)
 	r.PUT("/organizer/profile/document", controllers.UpdateDocumentsOrganizerController)
 	r.GET("/order/organizer/my", controllers.GetMyReservationListController)
+	// r.POST("/order/organizer/acc/:id", controllers.AcceptDeclineController)
 	// ------------------------------------------------------------------
 	// PACKAGE
 	// ------------------------------------------------------------------
@@ -53,6 +54,7 @@ func New() *echo.Echo {
 	e.GET("/package", controllers.GetAllPackageController)
 	e.GET("/package/:id", controllers.GetPackageByIDController)
 	r.GET("/package/my", controllers.GetMyPackageController)
+	r.DELETE("/package/:id", controllers.DeletePackageController)
 
 	return e
 }
