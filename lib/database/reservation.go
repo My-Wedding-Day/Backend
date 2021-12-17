@@ -8,7 +8,7 @@ import (
 // Fungsi untuk membuat data booking
 func CreateReservation(reservation *models.Reservation) (*models.Reservation, error) {
 	// CHECK DATABASE ALREADY RESERVE OR NOT
-	tx := config.DB.Where("date = ? AND package_id = ?", reservation.Date, reservation.Package_ID).Find(&models.Reservation{})
+	tx := config.DB.Where("date = ? AND package_id = ? AND status_order = 'waiting' OR status_order = 'accept' ", reservation.Date, reservation.Package_ID).Find(&models.Reservation{})
 	// IF ERROR
 	if tx.Error != nil {
 		return nil, tx.Error
