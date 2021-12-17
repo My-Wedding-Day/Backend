@@ -322,26 +322,26 @@ paths:
                   description: "Example data users"
                   value: {
                     data: [{
-                      ReservationID: 1,
-                      PackageID: 1,
+                      Reservation_ID: 1,
+                      package_id: 1,
                       PackageName: "Nikah Muda Asoy",
                       Organizer_ID: 1,
                       WoName: "a",
                       Date: "2021-12-07",
                       Additional: "none",
-                      TotalPax: 1000,
+                      total_pax: 1000,
                       StatusOrder: "waiting",
                       StatusPayment: "not paided"
                     },
                     {
-                      ReservationID: 2,
-                      PackageID: 1,
+                      Reservation_ID: 2,
+                      package_id: 1,
                       PackageName: "Nikah Muda Asoy",
                       Organizer_ID: 2,
                       WoName: "b",
                       Date: "2021-12-09",
                       Additional: "none",
-                      TotalPax: 1000,
+                      total_pax: 1000,
                       StatusOrder: "waiting",
                       StatusPayment: "not paided"
                     }
@@ -577,24 +577,24 @@ paths:
                   description: "Example data organizer"
                   value: {
                     data: [{
-                      ReservationID: 1,
-                      PackageID: 1,
+                      Reservation_ID: 1,
+                      package_id: 1,
                       PackageName: "Nikah Muda Asoy",
                       UserID: 1,
                       date: "2021-12-07",
                       additional: "none",
-                      TotalPax: 1000,
+                      total_pax: 1000,
                       StatusOrder: "waiting",
                       StatusPayment: "not paided"
                     },
                     {
-                      ReservationID: 2,
-                      PackageID: 1,
+                      Reservation_ID: 2,
+                      package_id: 1,
                       PackageName: "Nikah Muda Asoy",
                       UserID: 2,
                       date: "2021-12-09",
                       additional: "none",
-                      TotalPax: 1000,
+                      total_pax: 1000,
                       StatusOrder: "waiting",
                       StatusPayment: "not paided"
                     }
@@ -990,48 +990,48 @@ paths:
   #                   message: "Not Available",
   #                   status: "failed"
   #                 }
-  /reservations/:id:
-    get:
-      tags:
-        - Reservations
-      summary: Get Reservations Detail By ID
-      responses:
-        '200':
-          description: Success Response
-          content:
-            application/json:
-              examples:
-                userData1:
-                  description: "Example data reservation"
-                  value: {
-                    data: [
-                      {
-                        ReservationID: 1,
-                        PackageID: 1,
-                        PackageName: "Nikah Muda Asoy",
-                        Organizer_ID: 1,
-                        WoName: "a",
-                        Date: "2021-12-07",
-                        Additional: "none",
-                        TotalPax: 1000,
-                        StatusOrder: "waiting",
-                        StatusPayment: "not paided"
-                      },
-                    ],
-                    "message": "success",
-                    "status": "success"
-                  }
-        '400':
-          description: Failed Response
-          content:
-            application/json:
-              examples:
-                responseData1:
-                  description: failed
-                  value: {
-                    message: "failed get reservations",
-                    status: "failed"
-                  }                   
+  # /reservations/:id:
+  #   get:
+  #     tags:
+  #       - Reservations
+  #     summary: Get Reservations Detail By ID
+  #     responses:
+  #       '200':
+  #         description: Success Response
+  #         content:
+  #           application/json:
+  #             examples:
+  #               userData1:
+  #                 description: "Example data reservation"
+  #                 value: {
+  #                   data: [
+  #                     {
+  #                       ReservationID: 1,
+  #                       PackageID: 1,
+  #                       PackageName: "Nikah Muda Asoy",
+  #                       Organizer_ID: 1,
+  #                       WoName: "a",
+  #                       Date: "2021-12-07",
+  #                       Additional: "none",
+  #                       TotalPax: 1000,
+  #                       StatusOrder: "waiting",
+  #                       StatusPayment: "not paided"
+  #                     },
+  #                   ],
+  #                   "message": "success",
+  #                   "status": "success"
+  #                 }
+  #       '400':
+  #         description: Failed Response
+  #         content:
+  #           application/json:
+  #             examples:
+  #               responseData1:
+  #                 description: failed
+  #                 value: {
+  #                   message: "failed get reservations",
+  #                   status: "failed"
+  #                 }                   
 
 ####################################
 #   COMPONENTS
