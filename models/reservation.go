@@ -19,3 +19,15 @@ type Reservation struct {
 	UpdatedAt      time.Time
 	DeletedAt      gorm.DeletedAt `gorm:"index"`
 }
+
+type GetReservationRespon struct {
+	ID             int
+	Package_ID     int
+	WoName         string
+	PackageName    string
+	Date           string
+	Additional     string
+	Total_Pax      int
+	Status_Order   string
+	Status_Payment string
+}
