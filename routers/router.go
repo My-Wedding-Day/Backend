@@ -59,6 +59,7 @@ func New() *echo.Echo {
 	// RESERVATION
 	// ------------------------------------------------------------------
 	r.POST("/reservation", controllers.CreateReservationController)
+	r.GET("/order/users/my", controllers.GetReservationController)
 
 	return e
 }

@@ -20,7 +20,7 @@ func CreateReservationController(c echo.Context) error {
 	input, _ := database.GetPackagesByID(Reservation.Package_ID)
 	// WRONG INPUT
 	if input == nil {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("status failed"))
+		return c.JSON(http.StatusBadRequest, responses.ReservationFailed())
 	}
 	// TRANSFER DATA FROM TOKEN
 	Reservation.User_ID = logged
@@ -36,4 +36,13 @@ func CreateReservationController(c echo.Context) error {
 	}
 	// RESERVATION SUCCESS
 	return c.JSON(http.StatusCreated, responses.ReservationSuccess())
+}
+
+func GetReservationController(c echo.Context) error {
+	logged := middlewares.ExtractTokenUserId(c)
+	input, e := database.GetReservation(logged)
+	if e != nil {
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
+	}
+	return c.JSON(http.StatusOK, responses.StatusSuccessData("success", input))
 }
