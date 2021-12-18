@@ -30,6 +30,18 @@ type OrganizerResponSuccess struct {
 	Data    models.Organizer
 }
 
+type ReservationResponSuccess struct {
+	Status  string
+	Message string
+	Data    []models.ReservationListRespon
+}
+
+type PackageResponSuccess struct {
+	Status  string
+	Message string
+	Data    []database.GetPackageAllStruct
+}
+
 type ResponseFailed struct {
 	Status  string
 	Message string
@@ -51,7 +63,43 @@ var (
 		Password:    "yourpass",
 		PhoneNumber: "081242323123",
 		City:        "Makassar",
-		Address:     "Jl. Penghibur",
+		Address:     "Jl. Kertajaya",
+	}
+)
+
+var (
+	mock_data_package = models.Package{
+		Organizer_ID: 1,
+		PackageName:  "Garden Style Wedding",
+		Price:        15000000,
+		Pax:          100,
+		PackageDesc:  "Inin Package Deskripsi",
+	}
+)
+
+var (
+	mock_data_reservation = models.Reservation{
+		Package_ID: 1,
+		User_ID:    1,
+		Date:       "2021-12-12",
+		Additional: "Buginese",
+		Total_Pax:  100,
+	}
+)
+
+var (
+	mock_data_user = models.User{
+		Name:     "Fian Test",
+		Email:    "fiantest@mail.com",
+		Password: "yourpass",
+	}
+)
+
+var (
+	mock_data_photo = models.Photo{
+		Package_ID: 1,
+		Photo_Name: "Photo Name",
+		UrlPhoto:   "ini url",
 	}
 )
 
@@ -64,13 +112,48 @@ type LoginResponSuccess struct {
 	Token   string `json:"token" form:"token"`
 }
 
-var xpass string
+var xpassOrganizer string
+var xpassUser string
 
 func InsertMockDataOrganizerToDB() error {
-	xpass, _ = database.GeneratehashPassword(mock_data_organizer.Password)
-	mock_data_organizer.Password = xpass
+	xpassOrganizer, _ = database.GeneratehashPassword(mock_data_organizer.Password)
+	mock_data_organizer.Password = xpassOrganizer
 	var err error
 	if err = config.DB.Save(&mock_data_organizer).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func InsertMockDataUserToDB() error {
+	xpassUser, _ = database.GeneratehashPassword(mock_data_user.Password)
+	mock_data_user.Password = xpassUser
+	var err error
+	if err = config.DB.Save(&mock_data_user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func InsertMockDataPackageToDB() error {
+	var err error
+	if err = config.DB.Save(&mock_data_package).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func InsertMockDataReservationToDB() error {
+	var err error
+	if err = config.DB.Save(&mock_data_reservation).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func InsertMockDataPhotoToDB() error {
+	var err error
+	if err = config.DB.Save(&mock_data_photo).Error; err != nil {
 		return err
 	}
 	return nil
@@ -181,6 +264,7 @@ func TestGetProfileByIDOrganizerSuccess(t *testing.T) {
 
 	}
 }
+
 func TestGetProfileByIDOrganizerFailed(t *testing.T) {
 	e := InitEchoTestAPI()
 	InsertMockDataOrganizerToDB()
@@ -224,7 +308,7 @@ func TestGetProfileOrganizerSuccess(t *testing.T) {
 	e := InitEchoTestAPI()
 	InsertMockDataOrganizerToDB()
 	var organizerDetail models.Organizer
-	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpass).First(&organizerDetail)
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
 	if tx.Error != nil {
 		t.Error(tx.Error)
 	}
@@ -257,7 +341,7 @@ func TestGetProfileOrganizerFailed(t *testing.T) {
 	e := InitEchoTestAPI()
 	InsertMockDataOrganizerToDB()
 	var organizerDetail models.Organizer
-	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpass).First(&organizerDetail)
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
 	if tx.Error != nil {
 		t.Error(tx.Error)
 	}
@@ -282,6 +366,130 @@ func TestGetProfileOrganizerFailed(t *testing.T) {
 		assert.Equal(t, "failed", organizer.Status)
 		assert.Equal(t, "internal server error", organizer.Message)
 	})
+}
+
+func TestGetMyOrderListControllerSuccess(t *testing.T) {
+	e := InitEchoTestAPI()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataUserToDB()
+	InsertMockDataPackageToDB()
+	InsertMockDataReservationToDB()
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	res := httptest.NewRecorder()
+	context := e.NewContext(req, res)
+	context.SetPath("/order/organizer/my")
+	middleware.JWT([]byte(constants.SECRET_JWT))(GetMyReservationListControllerTest())(context)
+
+	var reservation ReservationResponSuccess
+	body := res.Body.String()
+	json.Unmarshal([]byte(body), &reservation)
+	assert.Equal(t, http.StatusOK, res.Code)
+	assert.Equal(t, "success get my list order", reservation.Message)
+	assert.Equal(t, "Fian Test", reservation.Data[0].Name)
+	assert.Equal(t, "Garden Style Wedding", reservation.Data[0].PackageName)
+}
+
+func TestGetMyOrderListControllerFailed(t *testing.T) {
+	e := InitEchoTestAPI()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataUserToDB()
+	InsertMockDataPackageToDB()
+	InsertMockDataReservationToDB()
+	config.DB.Migrator().DropTable(&models.Reservation{})
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	res := httptest.NewRecorder()
+	context := e.NewContext(req, res)
+	context.SetPath("/order/organizer/my")
+	middleware.JWT([]byte(constants.SECRET_JWT))(GetMyReservationListControllerTest())(context)
+
+	var reservation ReservationResponSuccess
+	body := res.Body.String()
+	json.Unmarshal([]byte(body), &reservation)
+	assert.Equal(t, http.StatusInternalServerError, res.Code)
+	assert.Equal(t, "internal server error", reservation.Message)
+}
+
+func TestGetMyPackageControllerSuccess(t *testing.T) {
+	e := InitEchoTestAPI()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataPackageToDB()
+	InsertMockDataPhotoToDB()
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	res := httptest.NewRecorder()
+	context := e.NewContext(req, res)
+	context.SetPath("/package/my")
+	middleware.JWT([]byte(constants.SECRET_JWT))(GetMyPackageControllerTest())(context)
+
+	var packages PackageResponSuccess
+	body := res.Body.String()
+	json.Unmarshal([]byte(body), &packages)
+	assert.Equal(t, http.StatusOK, res.Code)
+	assert.Equal(t, "success get my packages", packages.Message)
+	assert.Equal(t, 1, packages.Data[0].Organizer_ID)
+	assert.Equal(t, "Garden Style Wedding", packages.Data[0].PackageName)
+}
+
+func TestGetMyPackageControllerFailed(t *testing.T) {
+	e := InitEchoTestAPI()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataPackageToDB()
+	InsertMockDataPhotoToDB()
+	config.DB.Migrator().DropTable(&models.Package{})
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	res := httptest.NewRecorder()
+	context := e.NewContext(req, res)
+	context.SetPath("/package/my")
+	middleware.JWT([]byte(constants.SECRET_JWT))(GetMyPackageControllerTest())(context)
+
+	var packages PackageResponSuccess
+	body := res.Body.String()
+	json.Unmarshal([]byte(body), &packages)
+	assert.Equal(t, http.StatusInternalServerError, res.Code)
+	assert.Equal(t, "internal server error", packages.Message)
 }
 
 func TestRegisterOrganizerSuccess(t *testing.T) {
@@ -479,9 +687,35 @@ func TestRegisterOrganizerFailed(t *testing.T) {
 			assert.Equal(t, "email must contain email format", organizer.Message)
 		}
 	})
+	t.Run("TestRegister_InvalidFormatPhone", func(t *testing.T) {
+		mock_data_organizer.WoName = "Makassar wedding Exlusive"
+		mock_data_organizer.Email = "alfian@gmail.com"
+		mock_data_organizer.PhoneNumber = "sadfdfgh"
+		body, err := json.Marshal(mock_data_organizer)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		// send data using request body with HTTP method POST
+		req := httptest.NewRequest(http.MethodPost, "/register/organizer", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		contex := e.NewContext(req, rec)
+		if assert.NoError(t, CreateOrganizerController(contex)) {
+			body := rec.Body.String()
+			var organizer ResponseFailed
+			err := json.Unmarshal([]byte(body), &organizer)
+			if err != nil {
+				assert.Error(t, err, "error marshal")
+			}
+			assert.Equal(t, http.StatusBadRequest, rec.Code)
+			assert.Equal(t, "failed", organizer.Status)
+			assert.Equal(t, "phone must be number", organizer.Message)
+		}
+	})
 	t.Run("TestRegister_LengthCharacter", func(t *testing.T) {
 		mock_data_organizer.Password = "inipass"
 		mock_data_organizer.Email = "alfian@email.com"
+		mock_data_organizer.PhoneNumber = "081222333444"
 		body, err := json.Marshal(mock_data_organizer)
 		if err != nil {
 			t.Error(t, err, "error marshal")
@@ -505,7 +739,7 @@ func TestRegisterOrganizerFailed(t *testing.T) {
 	})
 	t.Run("TestRegister_DuplicatePhone", func(t *testing.T) {
 		mock_data_organizer.Password = "inipassword"
-		mock_data_organizer.Email = "alfian@email.com"
+		mock_data_organizer.PhoneNumber = "081242323123"
 		body, err := json.Marshal(mock_data_organizer)
 		if err != nil {
 			t.Error(t, err, "error marshal")
@@ -527,11 +761,32 @@ func TestRegisterOrganizerFailed(t *testing.T) {
 			assert.Equal(t, "phone number was used, try another one", organizer.Message)
 		}
 	})
+	t.Run("TestRegister_InvalidFormatAddress", func(t *testing.T) {
+		mock_data_organizer.Address = "13454632"
+		body, err := json.Marshal(mock_data_organizer)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		// send data using request body with HTTP method POST
+		req := httptest.NewRequest(http.MethodPost, "/register/organizer", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		contex := e.NewContext(req, rec)
+		if assert.NoError(t, CreateOrganizerController(contex)) {
+			body := rec.Body.String()
+			var organizer ResponseFailed
+			err := json.Unmarshal([]byte(body), &organizer)
+			if err != nil {
+				assert.Error(t, err, "error marshal")
+			}
+			assert.Equal(t, http.StatusBadRequest, rec.Code)
+			assert.Equal(t, "failed", organizer.Status)
+			assert.Equal(t, "Address must be valid", organizer.Message)
+		}
+	})
 	t.Run("TestRegister_ErrorDB", func(t *testing.T) {
 		config.DB.Migrator().DropTable(&models.Organizer{})
-		mock_data_organizer.Password = "inipassword"
-		mock_data_organizer.Email = "alfianfian@gmail.com"
-		mock_data_organizer.PhoneNumber = "12345678910"
+		mock_data_organizer.Address = "Jl. Kertajaya"
 		body, err := json.Marshal(mock_data_organizer)
 		if err != nil {
 			t.Error(t, err, "error marshal")
@@ -553,5 +808,4 @@ func TestRegisterOrganizerFailed(t *testing.T) {
 			assert.Equal(t, "internal server error", organizer.Message)
 		}
 	})
-
 }

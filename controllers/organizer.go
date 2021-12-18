@@ -357,7 +357,17 @@ func UpdateDocumentsOrganizerController(c echo.Context) error {
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success upload document"))
 }
 
-// Testing Get User
+// Testing Get Profile Organizer
 func GetProfileOrganizerControllerTest() echo.HandlerFunc {
 	return GetProfileOrganizerController
+}
+
+// Testing Get My Reservation
+func GetMyReservationListControllerTest() echo.HandlerFunc {
+	return GetMyReservationListController
+}
+
+// Testing Get My Packages
+func GetMyPackageControllerTest() echo.HandlerFunc {
+	return GetMyPackageController
 }
