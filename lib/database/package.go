@@ -138,3 +138,12 @@ func UpdatePackage(id int, updatePackage models.Package) (*UpdatePackageTanpaFot
 	}
 	return &paket, nil
 }
+
+// Fungsi untuk Edit Photo Package
+func UpdatePhotoPackage(url string, package_id int) (int64, error) {
+	tx := config.DB.Model(&models.Photo{}).Where("package_id=?", package_id).Update("url_photo", url)
+	if tx.Error != nil {
+		return -1, tx.Error
+	}
+	return tx.RowsAffected, nil
+}
