@@ -30,6 +30,11 @@ type OrganizerResponSuccess struct {
 	Data    models.Organizer
 }
 
+type ResponSuccess struct {
+	Status  string
+	Message string
+}
+
 type ReservationResponSuccess struct {
 	Status  string
 	Message string
@@ -100,6 +105,12 @@ var (
 		Package_ID: 1,
 		Photo_Name: "Photo Name",
 		UrlPhoto:   "ini url",
+	}
+)
+
+var (
+	mock_data_acceptdecline = models.AcceptBody{
+		Status_Order: "accept",
 	}
 )
 
@@ -490,6 +501,143 @@ func TestGetMyPackageControllerFailed(t *testing.T) {
 	json.Unmarshal([]byte(body), &packages)
 	assert.Equal(t, http.StatusInternalServerError, res.Code)
 	assert.Equal(t, "internal server error", packages.Message)
+}
+
+func TestAcceptDeclineSuccess(t *testing.T) {
+	e := InitEchoTestAPI()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataUserToDB()
+	InsertMockDataPackageToDB()
+	InsertMockDataReservationToDB()
+	bodyAcc, err := json.Marshal(mock_data_acceptdecline)
+	if err != nil {
+		t.Error(t, err, "error marshal")
+	}
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	req := httptest.NewRequest(http.MethodPut, "/order/status/:id", bytes.NewBuffer(bodyAcc))
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	res := httptest.NewRecorder()
+	context := e.NewContext(req, res)
+	context.SetPath("/order/status/:id")
+	context.SetParamNames("id")
+	context.SetParamValues("1")
+	middleware.JWT([]byte(constants.SECRET_JWT))(AcceptDeclineControllerTest())(context)
+
+	var reservation ResponSuccess
+	body := res.Body.String()
+	json.Unmarshal([]byte(body), &reservation)
+	assert.Equal(t, http.StatusCreated, res.Code)
+	assert.Equal(t, "success accept reservation", reservation.Message)
+}
+
+func TestAcceptDeclineFailed(t *testing.T) {
+	e := InitEchoTestAPI()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataUserToDB()
+	InsertMockDataPackageToDB()
+	InsertMockDataReservationToDB()
+	bodyAcc, err := json.Marshal(mock_data_acceptdecline)
+	if err != nil {
+		t.Error(t, err, "error marshal")
+	}
+	t.Run("TestPutAcc_FalseParam", func(t *testing.T) {
+		var organizerDetail models.Organizer
+		tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+		if tx.Error != nil {
+			t.Error(tx.Error)
+		}
+		token, err := middlewares.CreateToken(int(organizerDetail.ID))
+		if err != nil {
+			t.Error("error create token")
+		}
+		req := httptest.NewRequest(http.MethodPut, "/order/status/:id", bytes.NewBuffer(bodyAcc))
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+		context := e.NewContext(req, res)
+		context.SetPath("/order/status/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("#")
+		middleware.JWT([]byte(constants.SECRET_JWT))(AcceptDeclineControllerTest())(context)
+
+		var reservation ResponSuccess
+		body := res.Body.String()
+		json.Unmarshal([]byte(body), &reservation)
+		assert.Equal(t, http.StatusBadRequest, res.Code)
+		assert.Equal(t, "false param", reservation.Message)
+	})
+	t.Run("TestPutAcc_ErrorFormat", func(t *testing.T) {
+		mock_data_acceptdecline.Status_Order = "123"
+		bodyAcc, err := json.Marshal(mock_data_acceptdecline)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		var organizerDetail models.Organizer
+		tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+		if tx.Error != nil {
+			t.Error(tx.Error)
+		}
+		token, err := middlewares.CreateToken(int(organizerDetail.ID))
+		if err != nil {
+			t.Error("error create token")
+		}
+		req := httptest.NewRequest(http.MethodPut, "/order/status/:id", bytes.NewBuffer(bodyAcc))
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+		context := e.NewContext(req, res)
+		context.SetPath("/order/status/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+		middleware.JWT([]byte(constants.SECRET_JWT))(AcceptDeclineControllerTest())(context)
+
+		var reservation ResponSuccess
+		body := res.Body.String()
+		json.Unmarshal([]byte(body), &reservation)
+		assert.Equal(t, http.StatusBadRequest, res.Code)
+		assert.Equal(t, "data must be accept/decline", reservation.Message)
+	})
+	t.Run("TestPutAcc_NotFound", func(t *testing.T) {
+		mock_data_acceptdecline.Status_Order = "accept"
+		bodyAcc, err := json.Marshal(mock_data_acceptdecline)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		var organizerDetail models.Organizer
+		tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+		if tx.Error != nil {
+			t.Error(tx.Error)
+		}
+		token, err := middlewares.CreateToken(int(organizerDetail.ID))
+		if err != nil {
+			t.Error("error create token")
+		}
+		req := httptest.NewRequest(http.MethodPut, "/order/status/:id", bytes.NewBuffer(bodyAcc))
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+		context := e.NewContext(req, res)
+		context.SetPath("/order/status/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("10")
+		middleware.JWT([]byte(constants.SECRET_JWT))(AcceptDeclineControllerTest())(context)
+
+		var reservation ResponSuccess
+		body := res.Body.String()
+		json.Unmarshal([]byte(body), &reservation)
+		assert.Equal(t, http.StatusNotFound, res.Code)
+		assert.Equal(t, "Reservation Not Found", reservation.Message)
+	})
+
 }
 
 func TestRegisterOrganizerSuccess(t *testing.T) {

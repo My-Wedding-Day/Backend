@@ -185,7 +185,7 @@ func AcceptDeclineController(c echo.Context) error {
 	if err != nil || row < 1 {
 		return c.JSON(http.StatusNotFound, responses.StatusFailed("Reservation Not Found"))
 	}
-	return c.JSON(http.StatusCreated, responses.StatusSuccess("success edit data"))
+	return c.JSON(http.StatusCreated, responses.StatusSuccess("success "+orderstatus+" reservation"))
 }
 
 // Update/Edit Profile Organizer Function
@@ -370,4 +370,9 @@ func GetMyReservationListControllerTest() echo.HandlerFunc {
 // Testing Get My Packages
 func GetMyPackageControllerTest() echo.HandlerFunc {
 	return GetMyPackageController
+}
+
+// Testing Accept/Decline Feature
+func AcceptDeclineControllerTest() echo.HandlerFunc {
+	return AcceptDeclineController
 }
