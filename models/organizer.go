@@ -53,3 +53,19 @@ type ProfileRespon struct {
 	City        string `json:"city" form:"city"`
 	Address     string `json:"address" form:"address"`
 }
+
+type ReservationListRespon struct {
+	ID             int
+	Package_ID     int
+	PackageName    string
+	Name           string
+	Date           string
+	Additional     string
+	Total_Pax      int
+	Status_Order   string
+	Status_Payment string
+}
+
+type AcceptBody struct {
+	Status_Order string `json:"status_order" form:"status_order"`
+}

@@ -14,17 +14,42 @@ import (
 //register user
 func RegisterUsersController(c echo.Context) error {
 	var user models.User
+	// REGEX
+	var pattern string
+	var matched bool
+	// Bind all data from JSON
 	c.Bind(&user)
+	// Check data cannot be empty
+	if user.Name == "" || user.Email == "" {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
+	}
+	// Check Name cannot less than 5 characters
+	if len(user.Name) < 5 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("name cannot less than 5 characters"))
+	}
 	// Check Format Email
-	pattern := `^\w+@\w+\.\w+$`
-	matched, _ := regexp.Match(pattern, []byte(user.Email))
+	pattern = `^\w+@\w+\.\w+$`
+	matched, _ = regexp.Match(pattern, []byte(user.Email))
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
+	// Check Format Name
+	pattern = `^\w(\w+ ?)*$`
+	regex, _ := regexp.Compile(pattern)
+	matched = regex.Match([]byte(user.Name))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid format name"))
+	}
+	// Check Length of Character of Password
+	if len(user.Password) < 8 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("password cannot less than 8 characters"))
+	}
+	// Check Email is Exist
 	duplicate, _ := database.GetUserByEmail(user.Email)
 	if duplicate > 0 {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Email was used, try another email"))
 	}
+	// hash password bcrypt
 	Password, _ := database.GeneratehashPassword(user.Password)
 	user.Password = Password
 	user.Role = "User"
@@ -50,7 +75,7 @@ func LoginUsersController(c echo.Context) error {
 	return c.JSON(http.StatusCreated, responses.StatusSuccessLogin("login success", users.ID, token, users.Name, users.Role))
 }
 
-//get user by id
+//get user
 func GetUsersController(c echo.Context) error {
 	loginuser := middlewares.ExtractTokenUserId(c)
 	datauser, e := database.GetUser(loginuser)
@@ -65,14 +90,65 @@ func GetUsersController(c echo.Context) error {
 	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get user", respon))
 }
 
-//update user by id
+//update user
 func UpdateUserController(c echo.Context) error {
 	var user models.User
+	// REGEX
+	var pattern string
+	var matched bool
+	// Bind all data from JSON
 	c.Bind(&user)
-	loginuser := middlewares.ExtractTokenUserId(c)
-	_, e := database.UpdateUser(loginuser, user)
+	updateuser := middlewares.ExtractTokenUserId(c)
+	// Check data cannot be empty
+	if user.Name == "" || user.Email == "" {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
+	}
+	// Check Name cannot less than 5 characters
+	if len(user.Name) < 5 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("name cannot less than 5 characters"))
+	}
+	// Check Format Email
+	pattern = `^\w+@\w+\.\w+$`
+	matched, _ = regexp.Match(pattern, []byte(user.Email))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
+	}
+	// Check Format Name
+	pattern = `^\w(\w+ ?)*$`
+	regex, _ := regexp.Compile(pattern)
+	matched = regex.Match([]byte(user.Name))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid format name"))
+	}
+	// Check Length of Character of Password
+	if len(user.Password) < 8 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("password cannot less than 8 characters"))
+	}
+	// Check Email is Exist
+	userdata, _ := database.GetUser(updateuser)
+	if userdata.Email != user.Email {
+		row, err := database.GetUserByEmail(user.Email)
+		if row > 0 || err != nil {
+			return c.JSON(http.StatusBadRequest, responses.StatusFailed("Email was used, try another email"))
+		}
+	}
+	// hash password bcrypt
+	Password, _ := database.GeneratehashPassword(user.Password)
+	user.Password = Password
+	user.Role = "User"
+	_, e := database.UpdateUser(updateuser, user)
+	if e != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
+	}
+	return c.JSON(http.StatusCreated, responses.StatusSuccess("success update user"))
+}
+
+//delete user by id
+func DeleteUserController(c echo.Context) error {
+	deleteuser := middlewares.ExtractTokenUserId(c)
+	_, e := database.DeleteUser(deleteuser)
 	if e != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal service error"))
 	}
-	return c.JSON(http.StatusOK, responses.StatusSuccess("success update user"))
+	return c.JSON(http.StatusOK, responses.StatusSuccess("success delete user"))
 }

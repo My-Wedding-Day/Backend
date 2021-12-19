@@ -5,10 +5,12 @@ import (
 	"alta-wedding/lib/responses"
 	"alta-wedding/middlewares"
 	"alta-wedding/models"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -25,7 +27,7 @@ func InsertPackageController(c echo.Context) error {
 	c.Bind(&input)
 	duplicate, _ := database.GetPackageByName(input.PackageName)
 	if duplicate > 0 {
-		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("package name was user, try input another package name"))
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("package name was use, try input another package name"))
 	}
 	organizer_id := middlewares.ExtractTokenUserId(c)
 	input.Organizer_ID = organizer_id
@@ -48,8 +50,9 @@ func InsertPackageController(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(err.Error()))
 	}
 	defer f.Close()
+	lower := strings.ToLower(uploaded_file.Filename)
 	fileExtensions := map[string]bool{"jpg": true, "jpeg": true, "png": true, "bmp": true}
-	ext := strings.Split(uploaded_file.Filename, ".")
+	ext := strings.Split(lower, ".")
 	extension := ext[len(ext)-1]
 	if !fileExtensions[extension] {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailedDataPhoto("invalid type"))
@@ -86,4 +89,66 @@ func InsertPackageController(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success to input package"))
+}
+
+// Controller untuk mendapatkan seluruh data Packages
+func GetAllPackageController(c echo.Context) error {
+	// Mendapatkan data satu buku menggunakan fungsi GetPackages
+	paket, e := database.GetPackages()
+	if e != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to fetch packages"))
+	}
+	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get all packages", paket))
+}
+
+// Controller untuk mendapatkan seluruh data Packages by ID
+func GetPackageByIDController(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("false param"))
+	}
+	// Mendapatkan data satu buku menggunakan fungsi GetPackages
+	paket, e := database.GetPackagesByID(id)
+	if e != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to fetch packages"))
+	}
+	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get all packages by ID", paket))
+}
+
+func DeletePackageController(c echo.Context) error {
+	// Mendapatkan id cart yang diingikan client
+	id, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("false param"))
+	}
+
+	// Pengecekan apakah id package memiliki id user yang sama dengan id token
+	idToken := middlewares.ExtractTokenUserId(c)
+	getPackage, err := database.GetPackagesByID(id)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to fetch package"))
+	}
+	getPackageJSON, err := json.Marshal(getPackage)
+	if err != nil {
+		panic(err)
+	}
+
+	var responsePackage models.Package
+	json.Unmarshal([]byte(getPackageJSON), &responsePackage)
+
+	if getPackage.Organizer_ID != idToken {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Unauthorized Access"))
+	}
+
+	// Mengapus data satu product menggunakan fungsi DeleteShoppingCart
+	paket, e := database.DeletePackage(id)
+	if e != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to delete package"))
+	}
+	if paket == 0 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("package id not found"))
+	}
+	return c.JSON(http.StatusOK, responses.StatusSuccess("success deleted package"))
 }

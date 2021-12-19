@@ -20,26 +20,14 @@ func FindOrganizerByEmail(email string) (*models.Organizer, error) {
 	return nil, nil
 }
 
-func CheckPhoneNumber(phone string) (int64, error) {
+// Fungsi untuk mengecek ketersediaan data di database
+func CheckDatabase(coloumn string, data string) (int64, error) {
 	organizer := models.Organizer{}
-	tx := config.DB.Where("phone_number=?", phone).Find(&organizer)
+	tx := config.DB.Where(coloumn+"=?", data).Find(&organizer)
 	if tx.Error != nil {
 		return -1, tx.Error
 	}
 	return tx.RowsAffected, nil
-}
-
-// Fungsi untuk mengambil dan mencari data organizer by email di database
-func FindOrganizer(input models.Organizer) (*models.Organizer, error) {
-	organizer := models.Organizer{}
-	tx := config.DB.Where("email=? OR wo_name=?", input.Email, input.WoName).Find(&organizer)
-	if tx.Error != nil {
-		return nil, tx.Error
-	}
-	if tx.RowsAffected > 0 {
-		return &organizer, nil
-	}
-	return nil, nil
 }
 
 // Fungsi untuk mengambil dan mencari data organizer by id di database
@@ -101,6 +89,15 @@ func EditPhotoOrganizer(url string, organizer_id int) (int64, error) {
 	return tx.RowsAffected, nil
 }
 
+// Fungsi untuk Edit Document Profile Organizer
+func EditDocumentOrganizer(url string, organizer_id int) (int64, error) {
+	tx := config.DB.Model(&models.Organizer{}).Where("id=?", organizer_id).Update("proof", url)
+	if tx.Error != nil {
+		return -1, tx.Error
+	}
+	return tx.RowsAffected, nil
+}
+
 // Fungsi untuk get organizer by ID
 func FindProfilOrganizer(id int) (*models.ProfileRespon, error) {
 	organizer := models.ProfileRespon{}
@@ -111,6 +108,38 @@ func FindProfilOrganizer(id int) (*models.ProfileRespon, error) {
 		return nil, tx.Error
 	}
 	return &organizer, nil
+}
+
+// Fungsi untuk mengambil List Data Reservation
+func GetListReservations(organizer_id int) ([]models.ReservationListRespon, error) {
+	listOrder := []models.ReservationListRespon{}
+	tx := config.DB.Table("reservations").Select(
+		"reservations.id, reservations.package_id, packages.package_name, users.name, reservations.date, reservations.additional, reservations.total_pax, reservations.status_order,reservations.status_payment").
+		Joins("join packages on packages.id = reservations.package_id").
+		Joins("join users on users.id = reservations.user_id").
+		Where("packages.organizer_id=? AND reservations.deleted_at is NULL", organizer_id).Find(&listOrder)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return listOrder, nil
+}
+
+// Fungsi untuk Acc Reservasi User
+func AcceptDecline(reservation_id int, status string, organizer_id int) (int64, error) {
+	reserve := models.Reservation{}
+	query := config.DB.Table("reservations").Select("*").
+		Joins("join packages on packages.id = reservations.package_id").
+		Where("reservations.id=? AND packages.organizer_id=? AND reservations.deleted_at is NULL", reservation_id, organizer_id).Find(&reserve)
+
+	if query.Error != nil {
+		return -1, query.Error
+	}
+	if query.RowsAffected > 0 {
+		if err := config.DB.Model(models.Reservation{}).Where("id=?", reservation_id).Update("status_order", status).Error; err != nil {
+			return -1, err
+		}
+	}
+	return query.RowsAffected, nil
 }
 
 // Fungsi untuk enkripsi password organizer

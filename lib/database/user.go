@@ -52,18 +52,23 @@ func LoginUsers(user *models.UserLogin) (*models.User, error) {
 
 func UpdateUser(id int, User models.User) (models.User, error) {
 	var user models.User
-
-	if err := config.DB.First(&user, id).Error; err != nil {
+	if err := config.DB.Find(&user, id).Error; err != nil {
 		return user, err
 	}
-
 	expass, _ := GeneratehashPassword(User.Password)
 	user.Name = User.Name
 	user.Email = User.Email
 	user.Password = expass
-
 	if err := config.DB.Save(&user).Error; err != nil {
 		return user, err
 	}
 	return user, nil
+}
+
+func DeleteUser(id int) (interface{}, error) {
+	var userid models.User
+	if err := config.DB.Where("id = ?", id).Delete(&userid).Error; err != nil {
+		return nil, err
+	}
+	return userid, nil
 }

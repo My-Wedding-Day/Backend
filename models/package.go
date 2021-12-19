@@ -7,12 +7,13 @@ import (
 )
 
 type Package struct {
-	ID           int    `gorm:"primarykey"`
-	PackageName  string `gorm:"type:varchar(255)" json:"packagename" form:"packagename"`
-	Price        int    `gorm:"type:varchar(100)" json:"price" form:"price"`
-	Pax          int    `gorm:"type:varchar(100)" json:"pax" form:"pax"`
-	PackageDesc  string `gorm:"type:varchar(1000)" json:"packagedesc" form:"packagedesc"`
-	Organizer_ID int
+	ID           int     `gorm:"primarykey"`
+	Organizer_ID int     `gorm:"type:int(100);NOT NULL" json:"organizerid" form:"organizerid"`
+	PackageName  string  `gorm:"type:varchar(255);NOT NULL" json:"packagename" form:"packagename"`
+	Price        int     `gorm:"type:int(100);NOT NULL" json:"price" form:"price"`
+	Pax          int     `gorm:"type:int(100);NOT NULL" json:"pax" form:"pax"`
+	PackageDesc  string  `gorm:"type:varchar(1000);NOT NULL" json:"packagedesc" form:"packagedesc"`
+	UrlPhoto     []Photo `gorm:"foreignKey:Package_ID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	DeletedAt    gorm.DeletedAt `gorm:"index"`

@@ -34,6 +34,7 @@ func New() *echo.Echo {
 	// ------------------------------------------------------------------
 	r.GET("/users/profile", controllers.GetUsersController)
 	r.PUT("/users/profile", controllers.UpdateUserController)
+	r.DELETE("/users/profile", controllers.DeleteUserController)
 	// ------------------------------------------------------------------
 	// LOGIN & REGISTER ORGANIZER
 	// ------------------------------------------------------------------
@@ -43,7 +44,23 @@ func New() *echo.Echo {
 	r.GET("/organizer/profile", controllers.GetProfileOrganizerController)
 	r.PUT("/organizer/profile", controllers.UpdateOrganizerController)
 	r.PUT("/organizer/profile/photo", controllers.UpdatePhotoOrganizerController)
-
+	r.PUT("/organizer/profile/document", controllers.UpdateDocumentsOrganizerController)
+	r.GET("/order/organizer/my", controllers.GetMyReservationListController)
+	// r.POST("/order/organizer/acc/:id", controllers.AcceptDeclineController)
+	// ------------------------------------------------------------------
+	// PACKAGE
+	// ------------------------------------------------------------------
 	r.POST("/package", controllers.InsertPackageController)
+	e.GET("/package", controllers.GetAllPackageController)
+	e.GET("/package/:id", controllers.GetPackageByIDController)
+	r.GET("/package/my", controllers.GetMyPackageController)
+	r.DELETE("/package/:id", controllers.DeletePackageController)
+	// ------------------------------------------------------------------
+	// RESERVATION
+	// ------------------------------------------------------------------
+	r.POST("/reservation", controllers.CreateReservationController)
+	r.PUT("/order/status/:id", controllers.AcceptDeclineController)
+	r.GET("/order/users/my", controllers.GetReservationController)
+
 	return e
 }
