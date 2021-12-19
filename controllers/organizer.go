@@ -5,6 +5,7 @@ import (
 	"alta-wedding/lib/responses"
 	"alta-wedding/middlewares"
 	"alta-wedding/models"
+	"alta-wedding/util"
 	"fmt"
 	"io"
 	"net/http"
@@ -32,7 +33,7 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
 	}
 	// Check data cannot be empty
-	if organizer.Email == "" || organizer.City == "" || organizer.Address == "" {
+	if organizer.Email == "" || organizer.City == "" {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
 	}
 	// Check Name cannot less than 5 characters
@@ -65,11 +66,22 @@ func CreateOrganizerController(c echo.Context) error {
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
-	// Check Format Email
-	pattern = `^[0-9_]*$`
+	// Check Format Phone Number
+	pattern = `^[0-9]*$`
 	matched, _ = regexp.Match(pattern, []byte(organizer.PhoneNumber))
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone must be number"))
+	}
+	// Check Format Address
+	pattern = `^[a-zA-Z]([a-zA-Z.0-9,]+ ?)*$`
+	matched, _ = regexp.Match(pattern, []byte(organizer.Address))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Address must be valid"))
+	}
+	// Check Address
+	_, _, Err := util.GetGeocodeLocations(organizer.Address)
+	if Err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Address "+Err.Error()))
 	}
 	// Check Length of Character of PhoneNumber and Password
 	if len(organizer.PhoneNumber) < 9 || len(organizer.Password) < 8 {
@@ -152,11 +164,92 @@ func GetMyReservationListController(c echo.Context) error {
 	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get my list order", mylistorder))
 }
 
+// Fitur Accept/Decline Reservation
+func AcceptDeclineController(c echo.Context) error {
+	reservation_id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("false param"))
+	}
+	organizer_id := middlewares.ExtractTokenUserId(c)
+	request := models.AcceptBody{}
+	c.Bind(&request)
+	orderstatus := strings.ToLower(request.Status_Order)
+	// Check inputan harus accept atau decline
+	pattern := `^\W*((?i)accept|decline(?-i))\W*$`
+	matched, _ := regexp.Match(pattern, []byte(orderstatus))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("data must be accept/decline"))
+	}
+	request.Status_Order = orderstatus
+	row, err := database.AcceptDecline(reservation_id, request.Status_Order, organizer_id)
+	if err != nil || row < 1 {
+		return c.JSON(http.StatusNotFound, responses.StatusFailed("Reservation Not Found"))
+	}
+	return c.JSON(http.StatusCreated, responses.StatusSuccess("success "+orderstatus+" reservation"))
+}
+
 // Update/Edit Profile Organizer Function
 func UpdateOrganizerController(c echo.Context) error {
 	organizer := models.Organizer{}
 	c.Bind(&organizer)
 	organizer_id := middlewares.ExtractTokenUserId(c)
+	organizerData, _ := database.FindOrganizerById(organizer_id)
+	// Check data cannot be empty
+	if organizer.Email == "" {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
+	}
+	// Check Name cannot less than 5 characters
+	if len(organizer.WoName) < 5 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name cannot less than 5 characters"))
+	}
+	// Check Email Organizer is Exist
+	if organizer.Email != organizerData.Email {
+		row, err := database.CheckDatabase("email", organizer.Email)
+		if row > 0 || err != nil {
+			return c.JSON(http.StatusBadRequest, responses.StatusFailed("email was used, try another one"))
+		}
+	}
+	// Check Business name Organizer is Exist
+	if organizer.WoName != organizerData.WoName {
+		row, err := database.CheckDatabase("wo_name", organizer.WoName)
+		if row > 0 || err != nil {
+			return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name was used, try another one"))
+		}
+	}
+	// REGEX
+	var pattern string
+	var matched bool
+	// Check Format Name
+	pattern = `^(\w+ ?)*$`
+	regex, _ := regexp.Compile(pattern)
+	matched = regex.Match([]byte(organizer.WoName))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid format name"))
+	}
+	// Check Format Email
+	pattern = `^\w+@\w+\.\w+$`
+	matched, _ = regexp.Match(pattern, []byte(organizer.Email))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
+	}
+	// Check Format Phone Number
+	pattern = `^[0-9]*$`
+	matched, _ = regexp.Match(pattern, []byte(organizer.PhoneNumber))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone must be number"))
+	}
+	// Check Length of Character of PhoneNumber and Password
+	if len(organizer.PhoneNumber) < 9 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone number cannot less than 9 characters"))
+	}
+	// Check Phone number existing
+	if organizer.PhoneNumber != organizerData.PhoneNumber {
+		phonecheck, er := database.CheckDatabase("phone_number", organizer.PhoneNumber)
+		if phonecheck > 0 || er != nil {
+			return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone number was used, try another one"))
+		}
+	}
+	// Edit into database
 	_, err := database.EditOrganizer(organizer, organizer_id)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
@@ -264,7 +357,22 @@ func UpdateDocumentsOrganizerController(c echo.Context) error {
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success upload document"))
 }
 
-// Testing Get User
+// Testing Get Profile Organizer
 func GetProfileOrganizerControllerTest() echo.HandlerFunc {
 	return GetProfileOrganizerController
+}
+
+// Testing Get My Reservation
+func GetMyReservationListControllerTest() echo.HandlerFunc {
+	return GetMyReservationListController
+}
+
+// Testing Get My Packages
+func GetMyPackageControllerTest() echo.HandlerFunc {
+	return GetMyPackageController
+}
+
+// Testing Accept/Decline Feature
+func AcceptDeclineControllerTest() echo.HandlerFunc {
+	return AcceptDeclineController
 }

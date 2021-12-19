@@ -102,6 +102,9 @@ func GetPackagesByID(id int) (*GetPackageStruct, error) {
 	if query.Error != nil {
 		return nil, query.Error
 	}
+	if query.RowsAffected == 0 {
+		return nil, nil
+	}
 	return &paket, nil
 }
 
