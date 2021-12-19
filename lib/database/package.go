@@ -28,6 +28,15 @@ type GetPackageAllStruct struct {
 	UrlPhoto     string
 }
 
+type UpdatePackageTanpaFotoStruct struct {
+	ID           int
+	Organizer_ID int
+	PackageName  string
+	Price        int
+	Pax          int
+	PackageDesc  string
+}
+
 func InsertPackage(Package models.Package) (models.Package, error) {
 	tx := config.DB.Save(&Package)
 	if tx.Error != nil {
@@ -112,4 +121,29 @@ func DeletePackage(id int) (interface{}, error) {
 		return 0, queryPackage.Error
 	}
 	return "deleted", nil
+}
+
+// Fungsi Update Data Package
+func UpdatePackage(id int, updatePackage models.Package) (*UpdatePackageTanpaFotoStruct, error) {
+	var paket UpdatePackageTanpaFotoStruct
+	tx := config.DB.Find(&models.Package{}, id)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	if tx.RowsAffected < 1 {
+		return nil, nil
+	}
+	if err := config.DB.Model(&models.Package{}).Where("id=?", id).Updates(updatePackage).Error; err != nil {
+		return nil, err
+	}
+	return &paket, nil
+}
+
+// Fungsi untuk Edit Photo Package
+func UpdatePhotoPackage(url string, package_id int) (int64, error) {
+	tx := config.DB.Model(&models.Photo{}).Where("package_id=?", package_id).Update("url_photo", url)
+	if tx.Error != nil {
+		return -1, tx.Error
+	}
+	return tx.RowsAffected, nil
 }
