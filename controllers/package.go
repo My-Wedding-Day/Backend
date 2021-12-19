@@ -50,8 +50,9 @@ func InsertPackageController(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(err.Error()))
 	}
 	defer f.Close()
+	lower := strings.ToLower(uploaded_file.Filename)
 	fileExtensions := map[string]bool{"jpg": true, "jpeg": true, "png": true, "bmp": true}
-	ext := strings.Split(uploaded_file.Filename, ".")
+	ext := strings.Split(lower, ".")
 	extension := ext[len(ext)-1]
 	if !fileExtensions[extension] {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailedDataPhoto("invalid type"))
