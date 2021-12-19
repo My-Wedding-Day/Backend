@@ -134,6 +134,11 @@ func AcceptDecline(reservation_id int, status string, organizer_id int) (int64, 
 	if query.Error != nil {
 		return -1, query.Error
 	}
+	if status == "accept" {
+		status += "ed"
+	} else {
+		status += "d"
+	}
 	if query.RowsAffected > 0 {
 		if err := config.DB.Model(models.Reservation{}).Where("id=?", reservation_id).Update("status_order", status).Error; err != nil {
 			return -1, err
