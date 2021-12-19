@@ -54,6 +54,7 @@ func New() *echo.Echo {
 	e.GET("/package/:id", controllers.GetPackageByIDController)
 	r.GET("/package/my", controllers.GetMyPackageController)
 	r.DELETE("/package/:id", controllers.DeletePackageController)
+	r.PUT("/package/:id", controllers.UpdatePackageController)
 
 	return e
 }

@@ -152,3 +152,25 @@ func DeletePackageController(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, responses.StatusSuccess("success deleted package"))
 }
+
+// Update/Edit Package Function
+func UpdatePackageController(c echo.Context) error {
+	id, e := strconv.Atoi(c.Param("id"))
+	if e != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("false param"))
+	}
+	paket := models.Package{}
+	c.Bind(&paket)
+	organizer_id := middlewares.ExtractTokenUserId(c)
+	getPackage, _ := database.GetPackagesByID(id)
+	if organizer_id != getPackage.Organizer_ID {
+		return c.JSON(http.StatusUnauthorized, responses.StatusUnauthorized())
+	}
+
+	// Edit into database
+	_, err := database.UpdatePackage(id, paket)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
+	}
+	return c.JSON(http.StatusCreated, responses.StatusSuccess("success edit data"))
+}
