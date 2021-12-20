@@ -30,11 +30,11 @@ type UsersResponseSuccess struct {
 	Data    models.User
 }
 
-type UserResponse struct {
-	Status  string
-	Message string
-	User    models.User
-}
+// type UserResponse struct {
+// 	Status  string
+// 	Message string
+// 	User    models.User
+// }
 
 // Struct yang digunakan ketika test request failed
 type ResponFailed struct {
@@ -42,33 +42,9 @@ type ResponFailed struct {
 	Message string
 }
 
-// Struct untuk menampung data test case
-type UsersTestCase struct {
-	Name       string
-	Path       string
-	ExpectCode int
-}
-
-//struct untuk respon
-type Response struct {
-	Message string
-	Status  string
-	User    models.User
-}
-
-//struct untuk login
-type Login struct {
-	Email    string `json:"email" form:"email"`
-	Password string `json:"password" form:"password"`
-}
-
 var (
 	mock_data_user = models.User{
 		Name:     "alterra",
-		Email:    "alterra@gmail.com",
-		Password: "yourpasswd",
-	}
-	mock_data_login = models.UserLogin{
 		Email:    "alterra@gmail.com",
 		Password: "yourpasswd",
 	}
@@ -92,7 +68,7 @@ var expass string
 
 // Fungsi untuk memasukkan data user test ke dalam database
 func InsertMockDataUserToDB() error {
-	expass, _ = database.GeneratehashPassword(mock_data_login.Password)
+	expass, _ = database.GeneratehashPassword(mock_data_user.Password)
 	mock_data_user.Password = expass
 	if err := config.DB.Save(&mock_data_user).Error; err != nil {
 		return err
