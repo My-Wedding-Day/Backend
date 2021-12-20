@@ -22,7 +22,6 @@ type Reservation struct {
 
 type GetReservationRespon struct {
 	ID             int
-	User_ID        int
 	Package_ID     int
 	WoName         string
 	PackageName    string
