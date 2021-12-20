@@ -56,7 +56,7 @@ func CreateOrganizerController(c echo.Context) error {
 	regex, _ := regexp.Compile(pattern)
 	matched = regex.Match([]byte(organizer.WoName))
 	if !matched {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("name business name cannot less than 5 characters or invalid format"))
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name cannot less than 5 characters or invalid format"))
 	}
 	// Check Format Email
 	pattern = `^\w+@\w+\.\w+$`
