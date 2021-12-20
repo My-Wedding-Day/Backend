@@ -35,12 +35,8 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
 	}
 	// Check data cannot be empty
-	if organizer.Email == "" || organizer.City == "" {
+	if organizer.City == "" {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
-	}
-	// Check Name cannot less than 5 characters
-	if len(organizer.WoName) < 5 {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name cannot less than 5 characters"))
 	}
 	// Check Organizer Email is Exist
 	emailCheck, _ := database.CheckDatabase("email", organizer.Email)
@@ -56,11 +52,11 @@ func CreateOrganizerController(c echo.Context) error {
 	var pattern string
 	var matched bool
 	// Check Format Name
-	pattern = `^\w(\w+ ?)*$`
+	pattern = `^(\w+ ?){4}$`
 	regex, _ := regexp.Compile(pattern)
 	matched = regex.Match([]byte(organizer.WoName))
 	if !matched {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid format name"))
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name cannot less than 5 characters or invalid format"))
 	}
 	// Check Format Email
 	pattern = `^\w+@\w+\.\w+$`
@@ -69,10 +65,10 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
 	// Check Format Phone Number
-	pattern = `^[0-9]*$`
+	pattern = `^[0-9]{8,15}$`
 	matched, _ = regexp.Match(pattern, []byte(organizer.PhoneNumber))
 	if !matched {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone must be number"))
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone number must contain phone number format"))
 	}
 	// Check Format Address
 	pattern = `^[a-zA-Z]([a-zA-Z.0-9,]+ ?)*$`
@@ -86,8 +82,8 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Address "+Err.Error()))
 	}
 	// Check Length of Character of PhoneNumber and Password
-	if len(organizer.PhoneNumber) < 9 || len(organizer.Password) < 8 {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("password or phone number cannot less than 8 characters"))
+	if len(organizer.Password) < 8 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("password cannot less than 8 characters"))
 	}
 	// Check Phone number existing
 	phonecheck, _ := database.CheckDatabase("phone_number", organizer.PhoneNumber)
@@ -231,7 +227,7 @@ func UpdateOrganizerController(c echo.Context) error {
 	pattern = `^\w([a-zA-Z0-9()@:%_\+.~#?&//=\n"'\t\\;<>!*-{}]+ ?)*$`
 	matched, _ = regexp.Match(pattern, []byte(organizer.About))
 	if !matched {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("description must be not empty"))
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("description cannot be empty"))
 	}
 	// Check Email Organizer is Exist
 	if organizer.Email != organizerData.Email {
