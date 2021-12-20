@@ -152,3 +152,19 @@ func DeleteUserController(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, responses.StatusSuccess("success delete user"))
 }
+
+func LoginUsersControllerTest() echo.HandlerFunc {
+	return LoginUsersController
+}
+
+func GetUserControllersTest() echo.HandlerFunc {
+	return GetUsersController
+}
+
+func UpdateUserControllersTest() echo.HandlerFunc {
+	return UpdateUserController
+}
+
+func DeleteUserControllersTest() echo.HandlerFunc {
+	return DeleteUserController
+}
