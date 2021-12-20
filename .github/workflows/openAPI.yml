@@ -131,7 +131,7 @@ paths:
                   description: "Example data user"
                   value: {
                     data: [{
-                      PackageID: 1,
+                      package_id: 1,
                       Organizer_ID: 1,
                       PackageName: "Wedding 1 Malam",
                       Price: 100000000,
@@ -139,7 +139,7 @@ paths:
                       PackageDesc: "ini adalah paket wedding 1 malam"
                     },
                     {
-                      PackageID: 2,
+                      package_id: 2,
                       Organizer_ID: 2,
                       PackageName: "Wedding 2 Malam",
                       Price: 200000000,
@@ -522,7 +522,7 @@ paths:
                     message: "Unauthorized Access",
                     status: "Unauthorized"
                   }
-  /organizer/:id:
+  /organizer/profile/:id:
     get:
       tags:
         - Organizer
@@ -612,7 +612,46 @@ paths:
                   value: {
                     message: "Unauthorized Access",
                     status: "Unauthorized"
-                  }                  
+                  }
+  /order/status/:id:
+    put:
+      tags:
+        - Organizer
+      summary: Update Status Order (Accept/Decline)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestOrder'
+            examples:
+              userData1:
+                description: "Example data user"
+                value: {
+                  status_order: "accept"
+                }
+      responses:
+        '201':
+          description: Success Response
+          content:
+            application/json:
+              examples:
+                responseData1:
+                  description: success
+                  value: {
+                    message: "success accept reservation",
+                    status: "success"
+                  }
+        '401':
+          description: Failed Response
+          content:
+            application/json:
+              examples:
+                responseData1:
+                  description: reservation not found
+                  value: {
+                    message: "reservation not found",
+                    status: "failed"
+                  }                                  
 ####################################
 #   PACKAGE
 ####################################
@@ -674,7 +713,7 @@ paths:
                   value: {
                     data: [
                       {
-                        PackageID: 1,
+                        package_id: 1,
                         Organizer_ID: 1,
                         PackageName: "Nikah Muda Asoy",
                         Price: "270000000",
@@ -683,7 +722,7 @@ paths:
                         UrlPhoto: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
                       },
                       {
-                        PackageID: 2,
+                        package_id: 2,
                         Organizer_ID: 2,
                         PackageName: "Nikah Muda Asoy euy",
                         Price: "280000000",
@@ -722,7 +761,7 @@ paths:
                   value: {
                     data: [
                       {
-                        PackageID: 1,
+                        package_id: 1,
                         Organizer_ID: 1,
                         PackageName: "Nikah Muda Asoy",
                         price: "270000000",
@@ -731,7 +770,7 @@ paths:
                         photo: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
                       },
                       {
-                        PackageID: 2,
+                        package_id: 2,
                         Organizer_ID: 1,
                         PackageName: "Nikah Muda Asoy Tanpa Pasangan",
                         price: "170000000",
@@ -769,7 +808,7 @@ paths:
                   description: "Example data package"
                   value: {
                     data: {
-                        PackageID: 1,
+                        package_id: 1,
                         Organizer_ID: 1,
                         PackageName: "Nikah Muda Asoy",
                         Price: "270000000",
@@ -832,6 +871,44 @@ paths:
                   value: {
                     message: "missing or malformed jwt"
                   }
+  /package/photo/:id:
+    put:
+      tags:
+        - Package
+      summary: Update Package Photo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestPackage'
+            examples:
+              userData1:
+                description: "Example data Package"
+                value: {
+                    UrlPhoto: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
+                }
+      responses:
+          '201':
+            description: Success Response
+            content:
+              application/json:
+                examples:
+                  responseData1:
+                    description: success
+                    value: {
+                      message: "Success upload photo",
+                      status: "success"
+                    }
+          '400':
+            description: Failed Response
+            content:
+              application/json:
+                examples:
+                  responseData1:
+                    description: missing jwt (token)
+                    value: {
+                      message: "missing or malformed jwt"
+                    }              
     delete:
       tags:
         - Package
@@ -877,10 +954,10 @@ paths:
               userData1:
                 description: "Example data Reservation"
                 value: {
-                  PackageID: 1,
+                  package_id: 1,
                   date: "2021-12-07",
                   additional: "none",
-                  TotalPax: 1000,
+                  total_pax: 1000,
                 }
       responses:
         '201':
@@ -1140,6 +1217,14 @@ components:
           type: string
         },
         "password":{
+          type: string
+        }
+      }
+
+    requestOrder:
+      type: object
+      properties: {
+        "status_order":{
           type: string
         }
       }
