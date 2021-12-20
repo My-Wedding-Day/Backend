@@ -73,6 +73,28 @@ var (
 )
 
 var (
+	mock_data_organizer2 = models.Organizer{
+		WoName:      "Makassar Wedding 2",
+		Email:       "fiansecond@gmail.com",
+		Password:    "yourpass",
+		PhoneNumber: "081242323123",
+		City:        "Makassar",
+		Address:     "Jl. Kertajaya",
+	}
+)
+
+var (
+	mock_data_organizer_update = models.Organizer{
+		WoName:      "ini telah diedit",
+		Email:       "fian@gmail.com",
+		Password:    "yourpass",
+		PhoneNumber: "081242323123",
+		About:       "ini about edit",
+		WebUrl:      "www.google.com",
+	}
+)
+
+var (
 	mock_data_package = models.Package{
 		Organizer_ID: 1,
 		PackageName:  "Garden Style Wedding",
@@ -124,6 +146,7 @@ type LoginResponSuccess struct {
 }
 
 var xpassOrganizer string
+var xpassOrganizer2 string
 var xpassUser string
 
 func InsertMockDataOrganizerToDB() error {
@@ -131,6 +154,16 @@ func InsertMockDataOrganizerToDB() error {
 	mock_data_organizer.Password = xpassOrganizer
 	var err error
 	if err = config.DB.Save(&mock_data_organizer).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func InsertMockDataOrganizer2ToDB() error {
+	xpassOrganizer2, _ = database.GeneratehashPassword(mock_data_organizer2.Password)
+	mock_data_organizer2.Password = xpassOrganizer2
+	var err error
+	if err = config.DB.Save(&mock_data_organizer2).Error; err != nil {
 		return err
 	}
 	return nil
@@ -715,29 +748,6 @@ func TestRegisterOrganizerFailed(t *testing.T) {
 			assert.Equal(t, "input data cannot be empty", organizer.Message)
 		}
 	})
-	t.Run("TestRegister_WONameLess", func(t *testing.T) {
-		mock_data_organizer.WoName = "Fian"
-		body, err := json.Marshal(mock_data_organizer)
-		if err != nil {
-			t.Error(t, err, "error marshal")
-		}
-		// send data using request body with HTTP method POST
-		req := httptest.NewRequest(http.MethodPost, "/register/organizer", bytes.NewBuffer(body))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-		rec := httptest.NewRecorder()
-		contex := e.NewContext(req, rec)
-		if assert.NoError(t, CreateOrganizerController(contex)) {
-			body := rec.Body.String()
-			var organizer ResponseFailed
-			err := json.Unmarshal([]byte(body), &organizer)
-			if err != nil {
-				assert.Error(t, err, "error marshal")
-			}
-			assert.Equal(t, http.StatusBadRequest, rec.Code)
-			assert.Equal(t, "failed", organizer.Status)
-			assert.Equal(t, "business name cannot less than 5 characters", organizer.Message)
-		}
-	})
 	t.Run("TestRegister_EmailWasUsed", func(t *testing.T) {
 		InsertMockDataOrganizerToDB()
 		mock_data_organizer.WoName = "Makassar wedding"
@@ -808,7 +818,7 @@ func TestRegisterOrganizerFailed(t *testing.T) {
 			}
 			assert.Equal(t, http.StatusBadRequest, rec.Code)
 			assert.Equal(t, "failed", organizer.Status)
-			assert.Equal(t, "invalid format name", organizer.Message)
+			assert.Equal(t, "business name cannot less than 5 characters or invalid format", organizer.Message)
 		}
 	})
 	t.Run("TestRegister_InvalidFormatEmail", func(t *testing.T) {
@@ -857,7 +867,7 @@ func TestRegisterOrganizerFailed(t *testing.T) {
 			}
 			assert.Equal(t, http.StatusBadRequest, rec.Code)
 			assert.Equal(t, "failed", organizer.Status)
-			assert.Equal(t, "phone must be number", organizer.Message)
+			assert.Equal(t, "phone number must contain phone number format", organizer.Message)
 		}
 	})
 	t.Run("TestRegister_LengthCharacter", func(t *testing.T) {
@@ -882,7 +892,7 @@ func TestRegisterOrganizerFailed(t *testing.T) {
 			}
 			assert.Equal(t, http.StatusBadRequest, rec.Code)
 			assert.Equal(t, "failed", organizer.Status)
-			assert.Equal(t, "password or phone number cannot less than 8 characters", organizer.Message)
+			assert.Equal(t, "password cannot less than 8 characters", organizer.Message)
 		}
 	})
 	t.Run("TestRegister_DuplicatePhone", func(t *testing.T) {
@@ -956,4 +966,216 @@ func TestRegisterOrganizerFailed(t *testing.T) {
 			assert.Equal(t, "internal server error", organizer.Message)
 		}
 	})
+}
+
+func TestUpdateProfieControllerSuccess(t *testing.T) {
+	e := InitEchoTestAPI()
+	InsertMockDataOrganizerToDB()
+	body, err := json.Marshal(mock_data_organizer_update)
+	if err != nil {
+		t.Error(t, err, "error marshal")
+	}
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	req := httptest.NewRequest(http.MethodPut, "/organizer/profile", bytes.NewBuffer(body))
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	res := httptest.NewRecorder()
+	context := e.NewContext(req, res)
+	context.SetPath("/organizer/profile")
+	middleware.JWT([]byte(constants.SECRET_JWT))(UpdateOrganizerControllerTest())(context)
+
+	var organizer OrganizerResponSuccess
+	bodyReq := res.Body.String()
+	json.Unmarshal([]byte(bodyReq), &organizer)
+	assert.Equal(t, http.StatusCreated, res.Code)
+	assert.Equal(t, "success edit data", organizer.Message)
+}
+func TestUpdateProfieControllerFailed(t *testing.T) {
+	e := InitEchoTestAPI()
+	InsertMockDataOrganizerToDB()
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	t.Run("TestPUT_ErrorBind", func(t *testing.T) {
+		body1, err := json.Marshal(PostErrorBind{})
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile", bytes.NewBuffer(body1))
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+		context := e.NewContext(req, res)
+		context.SetPath("/organizer/profile")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdateOrganizerControllerTest())(context)
+
+		var organizer OrganizerResponSuccess
+		bodyReq := res.Body.String()
+		json.Unmarshal([]byte(bodyReq), &organizer)
+		assert.Equal(t, http.StatusBadRequest, res.Code)
+		assert.Equal(t, "bad request", organizer.Message)
+	})
+	t.Run("TestPUT_InvalidFormatName", func(t *testing.T) {
+		mock_data_organizer_update.WoName = "  "
+		body, err := json.Marshal(mock_data_organizer_update)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+		context := e.NewContext(req, res)
+		context.SetPath("/organizer/profile")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdateOrganizerControllerTest())(context)
+
+		var organizer OrganizerResponSuccess
+		bodyReq := res.Body.String()
+		json.Unmarshal([]byte(bodyReq), &organizer)
+		assert.Equal(t, http.StatusBadRequest, res.Code)
+		assert.Equal(t, "invalid format name", organizer.Message)
+	})
+	t.Run("TestPUT_InvalidFormatEmail", func(t *testing.T) {
+		mock_data_organizer_update.WoName = "Afiannnn"
+		mock_data_organizer_update.Email = "#"
+		body, err := json.Marshal(mock_data_organizer_update)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+		context := e.NewContext(req, res)
+		context.SetPath("/organizer/profile")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdateOrganizerControllerTest())(context)
+
+		var organizer OrganizerResponSuccess
+		bodyReq := res.Body.String()
+		json.Unmarshal([]byte(bodyReq), &organizer)
+		assert.Equal(t, http.StatusBadRequest, res.Code)
+		assert.Equal(t, "email must contain email format", organizer.Message)
+	})
+	t.Run("TestPUT_InvalidFormatPhone", func(t *testing.T) {
+		mock_data_organizer_update.Email = "fian@gmail.com"
+		mock_data_organizer_update.PhoneNumber = "081"
+		body, err := json.Marshal(mock_data_organizer_update)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+		context := e.NewContext(req, res)
+		context.SetPath("/organizer/profile")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdateOrganizerControllerTest())(context)
+
+		var organizer OrganizerResponSuccess
+		bodyReq := res.Body.String()
+		json.Unmarshal([]byte(bodyReq), &organizer)
+		assert.Equal(t, http.StatusBadRequest, res.Code)
+		assert.Equal(t, "phone number must contain phone number format", organizer.Message)
+	})
+	t.Run("TestPUT_InvalidFormatWeb", func(t *testing.T) {
+		mock_data_organizer_update.PhoneNumber = "081242323123"
+		mock_data_organizer_update.WebUrl = "iniweb"
+		body, err := json.Marshal(mock_data_organizer_update)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+		context := e.NewContext(req, res)
+		context.SetPath("/organizer/profile")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdateOrganizerControllerTest())(context)
+
+		var organizer OrganizerResponSuccess
+		bodyReq := res.Body.String()
+		json.Unmarshal([]byte(bodyReq), &organizer)
+		assert.Equal(t, http.StatusBadRequest, res.Code)
+		assert.Equal(t, "url web must contain url format", organizer.Message)
+	})
+	t.Run("TestPUT_InvalidFormatDesc", func(t *testing.T) {
+		mock_data_organizer_update.WebUrl = "www.google.com"
+		mock_data_organizer_update.About = "  "
+		body, err := json.Marshal(mock_data_organizer_update)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+		context := e.NewContext(req, res)
+		context.SetPath("/organizer/profile")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdateOrganizerControllerTest())(context)
+
+		var organizer OrganizerResponSuccess
+		bodyReq := res.Body.String()
+		json.Unmarshal([]byte(bodyReq), &organizer)
+		assert.Equal(t, http.StatusBadRequest, res.Code)
+		assert.Equal(t, "description cannot be empty", organizer.Message)
+	})
+	t.Run("TestPUT_EmailISExist", func(t *testing.T) {
+		InsertMockDataOrganizer2ToDB()
+		mock_data_organizer_update.About = "ini deskripsi loh"
+		mock_data_organizer_update.Email = "fiansecond@gmail.com"
+		body, err := json.Marshal(mock_data_organizer_update)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+		context := e.NewContext(req, res)
+		context.SetPath("/organizer/profile")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdateOrganizerControllerTest())(context)
+
+		var organizer OrganizerResponSuccess
+		bodyReq := res.Body.String()
+		json.Unmarshal([]byte(bodyReq), &organizer)
+		assert.Equal(t, http.StatusBadRequest, res.Code)
+		assert.Equal(t, "email was used, try another one", organizer.Message)
+	})
+	t.Run("TestPUT_BussinessnameISExist", func(t *testing.T) {
+		InsertMockDataOrganizer2ToDB()
+		mock_data_organizer_update.Email = "fians@gmail.com"
+		mock_data_organizer_update.WoName = "Makassar Wedding 2"
+		body, err := json.Marshal(mock_data_organizer_update)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+		context := e.NewContext(req, res)
+		context.SetPath("/organizer/profile")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdateOrganizerControllerTest())(context)
+
+		var organizer OrganizerResponSuccess
+		bodyReq := res.Body.String()
+		json.Unmarshal([]byte(bodyReq), &organizer)
+		assert.Equal(t, http.StatusBadRequest, res.Code)
+		assert.Equal(t, "business name was used, try another one", organizer.Message)
+	})
+
 }
