@@ -27,8 +27,8 @@ func CreateReservation(reservation *models.Reservation) (*models.Reservation, er
 }
 
 // Fungsi untuk mendapatkan reservasi by reservasi id
-func GetReservation(id int) (interface{}, error) {
-	var reservation models.GetReservationRespon
+func GetReservation(id int) ([]models.GetReservationRespon, error) {
+	var reservation []models.GetReservationRespon
 	query := config.DB.Table("reservations").Select("reservations.id, reservations.package_id, packages.package_name, organizers.wo_name, reservations.date, reservations.additional, reservations.total_pax, reservations.status_order, reservations.status_payment").
 		Joins("join packages on packages.id = reservations.package_id").Joins("join organizers on organizers.id = packages.organizer_id").
 		Where("reservations.user_id = ? AND reservations.deleted_at is NULL", id).Find(&reservation)

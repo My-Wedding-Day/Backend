@@ -59,7 +59,7 @@ func UpdateUser(id int, User models.User) (models.User, error) {
 	user.Name = User.Name
 	user.Email = User.Email
 	user.Password = expass
-	if err := config.DB.Save(&user).Error; err != nil {
+	if err := config.DB.Model(&models.User{}).Where("id=?", id).Updates(User).Error; err != nil {
 		return user, err
 	}
 	return user, nil

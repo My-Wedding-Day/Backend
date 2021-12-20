@@ -25,6 +25,8 @@ var (
 	storageClient *storage.Client
 )
 
+const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
+
 // Register Organizer Function
 func CreateOrganizerController(c echo.Context) error {
 	organizer := models.Organizer{}
@@ -33,12 +35,8 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
 	}
 	// Check data cannot be empty
-	if organizer.Email == "" || organizer.City == "" {
+	if organizer.City == "" {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
-	}
-	// Check Name cannot less than 5 characters
-	if len(organizer.WoName) < 5 {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name cannot less than 5 characters"))
 	}
 	// Check Organizer Email is Exist
 	emailCheck, _ := database.CheckDatabase("email", organizer.Email)
@@ -54,11 +52,11 @@ func CreateOrganizerController(c echo.Context) error {
 	var pattern string
 	var matched bool
 	// Check Format Name
-	pattern = `^\w(\w+ ?)*$`
+	pattern = `^(\w+ ?){4}$`
 	regex, _ := regexp.Compile(pattern)
 	matched = regex.Match([]byte(organizer.WoName))
 	if !matched {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid format name"))
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name cannot less than 5 characters or invalid format"))
 	}
 	// Check Format Email
 	pattern = `^\w+@\w+\.\w+$`
@@ -67,10 +65,10 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
 	// Check Format Phone Number
-	pattern = `^[0-9]*$`
+	pattern = `^[0-9]{8,15}$`
 	matched, _ = regexp.Match(pattern, []byte(organizer.PhoneNumber))
 	if !matched {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone must be number"))
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone number must contain phone number format"))
 	}
 	// Check Format Address
 	pattern = `^[a-zA-Z]([a-zA-Z.0-9,]+ ?)*$`
@@ -84,8 +82,8 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Address "+Err.Error()))
 	}
 	// Check Length of Character of PhoneNumber and Password
-	if len(organizer.PhoneNumber) < 9 || len(organizer.Password) < 8 {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("password or phone number cannot less than 8 characters"))
+	if len(organizer.Password) < 8 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("password cannot less than 8 characters"))
 	}
 	// Check Phone number existing
 	phonecheck, _ := database.CheckDatabase("phone_number", organizer.PhoneNumber)
@@ -185,22 +183,51 @@ func AcceptDeclineController(c echo.Context) error {
 	if err != nil || row < 1 {
 		return c.JSON(http.StatusNotFound, responses.StatusFailed("Reservation Not Found"))
 	}
-	return c.JSON(http.StatusCreated, responses.StatusSuccess("success edit data"))
+	return c.JSON(http.StatusCreated, responses.StatusSuccess("success "+orderstatus+" reservation"))
 }
 
 // Update/Edit Profile Organizer Function
 func UpdateOrganizerController(c echo.Context) error {
 	organizer := models.Organizer{}
-	c.Bind(&organizer)
+	// Bind all data from JSON
+	if err := c.Bind(&organizer); err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
+	}
 	organizer_id := middlewares.ExtractTokenUserId(c)
 	organizerData, _ := database.FindOrganizerById(organizer_id)
-	// Check data cannot be empty
-	if organizer.Email == "" {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
+	// REGEX
+	var pattern string
+	var matched bool
+	// Check Format Name
+	pattern = `^(\w+ ?){4}$`
+	regex, _ := regexp.Compile(pattern)
+	matched = regex.Match([]byte(organizer.WoName))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid format name"))
 	}
-	// Check Name cannot less than 5 characters
-	if len(organizer.WoName) < 5 {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name cannot less than 5 characters"))
+	// Check Format Email
+	pattern = `^\w+@\w+\.\w+$`
+	matched, _ = regexp.Match(pattern, []byte(organizer.Email))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
+	}
+	// Check Format Phone Number
+	pattern = `^[0-9]{8,15}$`
+	matched, _ = regexp.Match(pattern, []byte(organizer.PhoneNumber))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone number must contain phone number format"))
+	}
+	// Check Format Web URL
+	pattern = `^[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$`
+	matched, _ = regexp.Match(pattern, []byte(organizer.WebUrl))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("url web must contain url format"))
+	}
+	// Check Format About
+	pattern = `^\w([a-zA-Z0-9()@:%_\+.~#?&//=\n"'\t\\;<>!*-{}]+ ?)*$`
+	matched, _ = regexp.Match(pattern, []byte(organizer.About))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("description cannot be empty"))
 	}
 	// Check Email Organizer is Exist
 	if organizer.Email != organizerData.Email {
@@ -216,32 +243,6 @@ func UpdateOrganizerController(c echo.Context) error {
 			return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name was used, try another one"))
 		}
 	}
-	// REGEX
-	var pattern string
-	var matched bool
-	// Check Format Name
-	pattern = `^(\w+ ?)*$`
-	regex, _ := regexp.Compile(pattern)
-	matched = regex.Match([]byte(organizer.WoName))
-	if !matched {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid format name"))
-	}
-	// Check Format Email
-	pattern = `^\w+@\w+\.\w+$`
-	matched, _ = regexp.Match(pattern, []byte(organizer.Email))
-	if !matched {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
-	}
-	// Check Format Phone Number
-	pattern = `^[0-9]*$`
-	matched, _ = regexp.Match(pattern, []byte(organizer.PhoneNumber))
-	if !matched {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone must be number"))
-	}
-	// Check Length of Character of PhoneNumber and Password
-	if len(organizer.PhoneNumber) < 9 {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone number cannot less than 9 characters"))
-	}
 	// Check Phone number existing
 	if organizer.PhoneNumber != organizerData.PhoneNumber {
 		phonecheck, er := database.CheckDatabase("phone_number", organizer.PhoneNumber)
@@ -252,7 +253,7 @@ func UpdateOrganizerController(c echo.Context) error {
 	// Edit into database
 	_, err := database.EditOrganizer(organizer, organizer_id)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
 	}
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success edit data"))
 }
@@ -274,13 +275,26 @@ func UpdatePhotoOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(err.Error()))
 	}
 	defer f.Close()
-	fileExtensions := map[string]bool{"jpg": true, "jpeg": true, "png": true, "bmp": true}
+	buff := make([]byte, 512)
+	_, err = f.Read(buff)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "internal server error")
+	}
+	// Cek Ekstension Type must be JPEG or PNG
+	filetype := http.DetectContentType(buff)
+	if filetype != "image/jpeg" && filetype != "image/png" {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("The provided file format is not allowed. Please upload a JPEG or PNG image"))
+	}
+	// Return the pointer back to the start of the file
+	_, er := f.Seek(0, io.SeekStart)
+	if er != nil {
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(er.Error()))
+	}
+	if uploaded_file.Size > MAX_UPLOAD_SIZE*5 {
+		return c.JSON(http.StatusBadGateway, responses.StatusFailed("The uploaded file is too big. Please choose an file that's less than 5MB in size"))
+	}
 	ext := strings.Split(uploaded_file.Filename, ".")
 	extension := ext[len(ext)-1]
-	if !fileExtensions[extension] {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailedDataPhoto("invalid type"))
-	}
-
 	t := time.Now()
 	formatted := fmt.Sprintf("%d%02d%02dT%02d:%02d:%02d",
 		t.Year(), t.Month(), t.Day(),
@@ -324,13 +338,26 @@ func UpdateDocumentsOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(err.Error()))
 	}
 	defer f.Close()
-	fileExtensions := map[string]bool{"jpg": true, "jpeg": true, "png": true, "pdf": true}
+	buff := make([]byte, 512)
+	_, err = f.Read(buff)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "internal server error")
+	}
+	// Cek Ekstension Type must be JPEG or PNG
+	filetype := http.DetectContentType(buff)
+	if filetype != "application/pdf" {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("The provided file format is not allowed. Please upload a PDF document"))
+	}
+	// Return the pointer back to the start of the file
+	_, er := f.Seek(0, io.SeekStart)
+	if er != nil {
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(er.Error()))
+	}
+	if uploaded_file.Size > MAX_UPLOAD_SIZE*5 {
+		return c.JSON(http.StatusBadGateway, responses.StatusFailed("The uploaded file is too big. Please choose an file that's less than 5MB in size"))
+	}
 	ext := strings.Split(uploaded_file.Filename, ".")
 	extension := ext[len(ext)-1]
-	if !fileExtensions[extension] {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailedDataPhoto("invalid type"))
-	}
-
 	t := time.Now()
 	formatted := fmt.Sprintf("%d%02d%02dT%02d:%02d:%02d",
 		t.Year(), t.Month(), t.Day(),
@@ -357,7 +384,30 @@ func UpdateDocumentsOrganizerController(c echo.Context) error {
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success upload document"))
 }
 
-// Testing Get User
+//------------------------------------------------------
+//>>>>>>>>>>>>>>>>> FOR UNIT TESTING <<<<<<<<<<<<<<<<<<<
+//------------------------------------------------------
+// Testing Get Profile Organizer
 func GetProfileOrganizerControllerTest() echo.HandlerFunc {
 	return GetProfileOrganizerController
+}
+
+// Testing Get My Reservation
+func GetMyReservationListControllerTest() echo.HandlerFunc {
+	return GetMyReservationListController
+}
+
+// Testing Get My Packages
+func GetMyPackageControllerTest() echo.HandlerFunc {
+	return GetMyPackageController
+}
+
+// Testing Accept/Decline Feature
+func AcceptDeclineControllerTest() echo.HandlerFunc {
+	return AcceptDeclineController
+}
+
+// Testing Accept/Decline Feature
+func UpdateOrganizerControllerTest() echo.HandlerFunc {
+	return UpdateOrganizerController
 }
