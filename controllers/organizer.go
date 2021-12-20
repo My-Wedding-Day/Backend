@@ -227,7 +227,12 @@ func UpdateOrganizerController(c echo.Context) error {
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("url web must contain url format"))
 	}
-
+	// Check Format About
+	pattern = `^\w([a-zA-Z0-9()@:%_\+.~#?&//=\n"'\t\\;<>!*-{}]+ ?)*$`
+	matched, _ = regexp.Match(pattern, []byte(organizer.About))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("description must be not empty"))
+	}
 	// Check Email Organizer is Exist
 	if organizer.Email != organizerData.Email {
 		row, err := database.CheckDatabase("email", organizer.Email)
@@ -383,6 +388,9 @@ func UpdateDocumentsOrganizerController(c echo.Context) error {
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success upload document"))
 }
 
+//------------------------------------------------------
+//>>>>>>>>>>>>>>>>> FOR UNIT TESTING <<<<<<<<<<<<<<<<<<<
+//------------------------------------------------------
 // Testing Get Profile Organizer
 func GetProfileOrganizerControllerTest() echo.HandlerFunc {
 	return GetProfileOrganizerController
@@ -401,4 +409,9 @@ func GetMyPackageControllerTest() echo.HandlerFunc {
 // Testing Accept/Decline Feature
 func AcceptDeclineControllerTest() echo.HandlerFunc {
 	return AcceptDeclineController
+}
+
+// Testing Accept/Decline Feature
+func UpdateOrganizerControllerTest() echo.HandlerFunc {
+	return UpdateOrganizerController
 }
