@@ -7,6 +7,7 @@ import (
 	"alta-wedding/models"
 	"net/http"
 	"regexp"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -19,11 +20,6 @@ func RegisterUsersController(c echo.Context) error {
 	var matched bool
 	// Bind all data from JSON
 	c.Bind(&user)
-	// Parse to lower email
-	// lower := strings.ToLower(user.Email)
-	// if user.lower {
-	// 	return c.JSON(http.StatusCreated, responses.StatusSuccess())
-	// }
 	// Check data cannot be empty
 	if user.Name == "" || user.Email == "" {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
@@ -33,8 +29,9 @@ func RegisterUsersController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("name cannot less than 5 characters"))
 	}
 	// Check Format Email
-	pattern = `^\w+@\w+\.\w+$`
-	matched, _ = regexp.Match(pattern, []byte(user.Email))
+	EmailToLower := strings.ToLower(user.Email)
+	pattern = `^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$`
+	matched, _ = regexp.Match(pattern, []byte(EmailToLower))
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
@@ -56,7 +53,7 @@ func RegisterUsersController(c echo.Context) error {
 	}
 	// hash password bcrypt
 	Password, _ := database.GeneratehashPassword(user.Password)
-	user.Password = Password
+	user.Password = Password //replace old password
 	user.Role = "User"
 	_, err := database.RegisterUser(user)
 	if err != nil {

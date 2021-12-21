@@ -53,7 +53,7 @@ func InitalMigration() {
 func InitDBTest() {
 	dbconfig := map[string]string{
 		"DB_USERNAME":  "root",
-		"DB_PASSWORD":  "",
+		"DB_PASSWORD":  "yourpasswd",
 		"DB_HOST":      "localhost",
 		"DB_PORT":      "3306",
 		"DB_NAME_TEST": "alta_wedding_test"}

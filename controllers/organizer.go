@@ -38,16 +38,6 @@ func CreateOrganizerController(c echo.Context) error {
 	if organizer.City == "" {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
 	}
-	// Check Organizer Email is Exist
-	emailCheck, _ := database.CheckDatabase("email", organizer.Email)
-	if emailCheck > 0 {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email was used, try another one"))
-	}
-	// Check Organizer Business name is Exist
-	nameCheck, _ := database.CheckDatabase("wo_name", organizer.WoName)
-	if nameCheck > 0 {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name was used, try another one"))
-	}
 	// REGEX
 	var pattern string
 	var matched bool
@@ -59,11 +49,13 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name cannot less than 5 characters or invalid format"))
 	}
 	// Check Format Email
-	pattern = `^\w+@\w+\.\w+$`
-	matched, _ = regexp.Match(pattern, []byte(organizer.Email))
+	emailLower := strings.ToLower(organizer.Email)
+	pattern = `^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$`
+	matched, _ = regexp.Match(pattern, []byte(emailLower))
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
+	organizer.Email = emailLower
 	// Check Format Phone Number
 	pattern = `^[0-9]{8,15}$`
 	matched, _ = regexp.Match(pattern, []byte(organizer.PhoneNumber))
@@ -75,6 +67,16 @@ func CreateOrganizerController(c echo.Context) error {
 	matched, _ = regexp.Match(pattern, []byte(organizer.Address))
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Address must be valid"))
+	}
+	// Check Organizer Email is Exist
+	emailCheck, _ := database.CheckDatabase("email", organizer.Email)
+	if emailCheck > 0 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email was used, try another one"))
+	}
+	// Check Organizer Business name is Exist
+	nameCheck, _ := database.CheckDatabase("wo_name", organizer.WoName)
+	if nameCheck > 0 {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name was used, try another one"))
 	}
 	// Check Address
 	_, _, Err := util.GetGeocodeLocations(organizer.Address)
@@ -108,6 +110,8 @@ func LoginOrganizerController(c echo.Context) error {
 	login := models.LoginRequestBody{}
 	// Bind all data from JSON
 	c.Bind(&login)
+	emailLower := strings.ToLower(login.Email)
+	login.Email = emailLower
 	organizer, err := database.LoginOrganizer(login)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
@@ -206,11 +210,13 @@ func UpdateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("invalid format name"))
 	}
 	// Check Format Email
-	pattern = `^\w+@\w+\.\w+$`
+	emailLower := strings.ToLower(organizer.Email)
+	pattern = `^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$`
 	matched, _ = regexp.Match(pattern, []byte(organizer.Email))
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
+	organizer.Email = emailLower
 	// Check Format Phone Number
 	pattern = `^[0-9]{8,15}$`
 	matched, _ = regexp.Match(pattern, []byte(organizer.PhoneNumber))
