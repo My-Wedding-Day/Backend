@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"alta-wedding/config"
-	"alta-wedding/constants"
 	"alta-wedding/lib/database"
 	"alta-wedding/models"
 	"bytes"
@@ -12,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,12 +28,6 @@ type UsersResponseSuccess struct {
 	Data    models.User
 }
 
-// type UserResponse struct {
-// 	Status  string
-// 	Message string
-// 	User    models.User
-// }
-
 // Struct yang digunakan ketika test request failed
 type ResponFailed struct {
 	Status  string
@@ -43,16 +35,16 @@ type ResponFailed struct {
 }
 
 var (
-	mock_data_user = models.User{
-		Name:     "alterra",
-		Email:    "alterra@gmail.com",
+	mock_user_data = models.User{
+		Name:     "armuh",
+		Email:    "armuh@gmail.com",
 		Password: "yourpasswd",
 	}
 )
 
 var logindata = models.UserLogin{
 	Email:    "armuh@gmail.com",
-	Password: "yourpass",
+	Password: "yourpasswd",
 }
 
 type ResponSuccessLogin struct {
@@ -67,10 +59,10 @@ type ResponSuccessLogin struct {
 var expass string
 
 // Fungsi untuk memasukkan data user test ke dalam database
-func InsertMockDataUserToDB() error {
-	expass, _ = database.GeneratehashPassword(mock_data_user.Password)
-	mock_data_user.Password = expass
-	if err := config.DB.Save(&mock_data_user).Error; err != nil {
+func InsertMockUserDataToDB() error {
+	expass, _ = database.GeneratehashPassword(mock_user_data.Password)
+	mock_user_data.Password = expass
+	if err := config.DB.Save(&mock_user_data).Error; err != nil {
 		return err
 	}
 	return nil
@@ -154,97 +146,6 @@ func TestGetUserControllersError(t *testing.T) {
 		assert.Equal(t, "Bad Request", user.Message)
 
 	}
-}
-
-//------------------------------------------------
-
-//test register user
-func TestRegisterUserController(t *testing.T) {
-	var testCases = struct {
-		name       string
-		path       string
-		expectCode int
-	}{
-
-		name:       "Success Create User",
-		path:       "/users",
-		expectCode: http.StatusOK,
-	}
-
-	e := InitEchoTestUser()
-	InsertMockDataUserToDB()
-
-	body, err := json.Marshal(mock_data_user)
-	if err != nil {
-		t.Error(t, err, "error")
-	}
-
-	//send data using request body with HTTP Method POST
-	req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-
-	c := e.NewContext(req, rec)
-
-	if assert.NoError(t, RegisterUsersController(c)) {
-		bodyResponses := rec.Body.String()
-		var user UserResponse
-
-		err := json.Unmarshal([]byte(bodyResponses), &user)
-		if err != nil {
-			assert.Error(t, err, "error")
-		}
-
-		assert.Equal(t, testCases.expectCode, rec.Code)
-		assert.Equal(t, "alterra", user.User.Name)
-		assert.Equal(t, "alterra@gmail.com", user.User.Email)
-		assert.Equal(t, "Success Create User", user.Message)
-	}
-
-}
-
-//test create user error
-func TestRegisterUserControllerError(t *testing.T) {
-	var testCases = struct {
-		name       string
-		path       string
-		expectCode int
-	}{
-
-		name:       "Failed to Create User",
-		path:       "/users",
-		expectCode: http.StatusBadRequest,
-	}
-
-	e := InitEchoTestUser()
-	InsertMockDataUserToDB()
-	config.DB.Migrator().DropTable(models.User{})
-
-	body, err := json.Marshal(mock_data_user)
-	if err != nil {
-		t.Error(t, err, "error")
-	}
-
-	//send data using request body with HTTP Method POST
-	req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-
-	c := e.NewContext(req, rec)
-
-	if assert.NoError(t, RegisterUsersController(c)) {
-		bodyResponses := rec.Body.String()
-		var user UserResponse
-
-		err := json.Unmarshal([]byte(bodyResponses), &user)
-		if err != nil {
-			assert.Error(t, err, "error")
-		}
-
-		assert.Equal(t, testCases.expectCode, rec.Code)
-		assert.Equal(t, "Failed to create user", user.Message)
-	}
-
 }
 
 //--------------------------------------------------------
@@ -476,10 +377,10 @@ func TestLoginUsersControllersError(t *testing.T) {
 
 */
 
-//test login success
+//test login success done
 func TestLoginGetUserControllers(t *testing.T) {
 	e := InitEchoTestUser()
-	InsertMockDataUserToDB()
+	InsertMockUserDataToDB()
 	body, error := json.Marshal(logindata)
 	if error != nil {
 		t.Error(t, error, "error marshal")
@@ -490,7 +391,6 @@ func TestLoginGetUserControllers(t *testing.T) {
 	res := httptest.NewRecorder()
 	context := e.NewContext(req, res)
 	context.SetPath("/login/users")
-	middleware.JWT([]byte(constants.SECRET_JWT))(LoginUsersControllerTest())(context)
 
 	if assert.NoError(t, LoginUsersController(context)) {
 		res_body := res.Body.String()
@@ -501,19 +401,16 @@ func TestLoginGetUserControllers(t *testing.T) {
 		}
 
 		assert.Equal(t, http.StatusCreated, res.Code)
-		assert.Equal(t, 1, User.ID)
 		assert.Equal(t, "success", User.Status)
 		assert.Equal(t, "login success", User.Message)
-		assert.Equal(t, "Arif Muhammad", User.Name)
-		assert.Equal(t, "user", User.Role)
 
 	}
 }
 
-//test login error
+//test login error done
 func TestLoginUserFailed(t *testing.T) {
 	e := InitEchoTestUser()
-	InsertMockDataUserToDB()
+	InsertMockUserDataToDB()
 
 	t.Run("TestLoginUser_InvalidInput", func(t *testing.T) {
 		logininfo, err := json.Marshal(models.UserLogin{Email: "fian@gmail.com", Password: "admins"})
@@ -559,6 +456,220 @@ func TestLoginUserFailed(t *testing.T) {
 			assert.Equal(t, http.StatusInternalServerError, rec.Code)
 			assert.Equal(t, "failed", User.Status)
 			assert.Equal(t, "internal server error", User.Message)
+		}
+	})
+}
+
+//test register user success done
+func TestRegisterUserController(t *testing.T) {
+	e := InitEchoTestUser()
+	body, err := json.Marshal(mock_user_data)
+	if err != nil {
+		t.Error(t, err, "error marshal")
+	}
+	//send data using request body with HTTP Method POST
+	req := httptest.NewRequest(http.MethodPost, "/register/users", bytes.NewBuffer(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/register/users")
+
+	if assert.NoError(t, RegisterUsersController(c)) {
+		bodyuser := rec.Body.String()
+		var user UsersResponseSuccess
+		err := json.Unmarshal([]byte(bodyuser), &user)
+		if err != nil {
+			assert.Error(t, err, "error marshal")
+		}
+		assert.Equal(t, http.StatusCreated, rec.Code)
+		assert.Equal(t, "success", user.Status)
+		assert.Equal(t, "success create new user", user.Message)
+	}
+
+}
+
+//test create user error
+func TestRegisterUserControllerError(t *testing.T) {
+	e := InitEchoTestUser()
+	t.Run("TestRegisterEmpty", func(t *testing.T) {
+		type Login struct {
+			Name     string
+			Password string
+		}
+		var empty Login
+		body, err := json.Marshal(empty)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		// config.DB.Migrator().DropTable(models.User{})
+
+		//send data using request body with HTTP Method POST
+		req := httptest.NewRequest(http.MethodPost, "/register/users", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		if assert.NoError(t, RegisterUsersController(c)) {
+			bodyResponses := rec.Body.String()
+			var user ResponFailed
+			err := json.Unmarshal([]byte(bodyResponses), &user)
+			if err != nil {
+				assert.Error(t, err, "error marshal")
+			}
+			assert.Equal(t, http.StatusBadRequest, rec.Code)
+			assert.Equal(t, "failed", user.Status)
+			assert.Equal(t, "input data cannot be empty", user.Message)
+		}
+	})
+	t.Run("TestRegisterNameLess", func(t *testing.T) {
+		mock_user_data.Name = "Arif"
+		body, err := json.Marshal(mock_user_data)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		// config.DB.Migrator().DropTable(models.User{})
+
+		//send data using request body with HTTP Method POST
+		req := httptest.NewRequest(http.MethodPost, "/register/users", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		if assert.NoError(t, RegisterUsersController(c)) {
+			bodyResponses := rec.Body.String()
+			var user ResponFailed
+			err := json.Unmarshal([]byte(bodyResponses), &user)
+			if err != nil {
+				assert.Error(t, err, "error marshal")
+			}
+			assert.Equal(t, http.StatusBadRequest, rec.Code)
+			assert.Equal(t, "failed", user.Status)
+			assert.Equal(t, "name cannot less than 5 characters", user.Message)
+		}
+	})
+	t.Run("TestRegisterEmailWasUsed", func(t *testing.T) {
+		InsertMockUserDataToDB()
+		mock_user_data.Email = "armuh@gmail.com"
+		body, err := json.Marshal(mock_user_data)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		// config.DB.Migrator().DropTable(models.User{})
+
+		//send data using request body with HTTP Method POST
+		req := httptest.NewRequest(http.MethodPost, "/register/users", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		if assert.NoError(t, RegisterUsersController(c)) {
+			bodyResponses := rec.Body.String()
+			var user ResponFailed
+			err := json.Unmarshal([]byte(bodyResponses), &user)
+			if err != nil {
+				assert.Error(t, err, "error marshal")
+			}
+			assert.Equal(t, http.StatusBadRequest, rec.Code)
+			assert.Equal(t, "failed", user.Status)
+			assert.Equal(t, "Email was used, try another email", user.Message)
+		}
+	})
+	t.Run("TestRegisterInvalidFormatName", func(t *testing.T) {
+		mock_user_data.Name = "      armuh"
+		body, err := json.Marshal(mock_user_data)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		// config.DB.Migrator().DropTable(models.User{})
+
+		//send data using request body with HTTP Method POST
+		req := httptest.NewRequest(http.MethodPost, "/register/users", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		if assert.NoError(t, RegisterUsersController(c)) {
+			bodyResponses := rec.Body.String()
+			var user ResponFailed
+			err := json.Unmarshal([]byte(bodyResponses), &user)
+			if err != nil {
+				assert.Error(t, err, "error marshal")
+			}
+			assert.Equal(t, http.StatusBadRequest, rec.Code)
+			assert.Equal(t, "failed", user.Status)
+			assert.Equal(t, "invalid format name", user.Message)
+		}
+	})
+	t.Run("TestRegisterInvalidFormatEmail", func(t *testing.T) {
+		mock_user_data.Email = "#armuh@gmail.com"
+		body, err := json.Marshal(mock_user_data)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		// config.DB.Migrator().DropTable(models.User{})
+
+		//send data using request body with HTTP Method POST
+		req := httptest.NewRequest(http.MethodPost, "/register/users", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		if assert.NoError(t, RegisterUsersController(c)) {
+			bodyResponses := rec.Body.String()
+			var user ResponFailed
+			err := json.Unmarshal([]byte(bodyResponses), &user)
+			if err != nil {
+				assert.Error(t, err, "error marshal")
+			}
+			assert.Equal(t, http.StatusBadRequest, rec.Code)
+			assert.Equal(t, "failed", user.Status)
+			assert.Equal(t, "email must contain email format", user.Message)
+		}
+	})
+	t.Run("TestRegisterInvalidFormatPassword", func(t *testing.T) {
+		mock_user_data.Password = "12345"
+		body, err := json.Marshal(mock_user_data)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+		// config.DB.Migrator().DropTable(models.User{})
+
+		//send data using request body with HTTP Method POST
+		req := httptest.NewRequest(http.MethodPost, "/register/users", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		if assert.NoError(t, RegisterUsersController(c)) {
+			bodyResponses := rec.Body.String()
+			var user ResponFailed
+			err := json.Unmarshal([]byte(bodyResponses), &user)
+			if err != nil {
+				assert.Error(t, err, "error marshal")
+			}
+			assert.Equal(t, http.StatusBadRequest, rec.Code)
+			assert.Equal(t, "failed", user.Status)
+			assert.Equal(t, "password cannot less than 8 characters", user.Message)
+		}
+	})
+	t.Run("TestRegisterBadRequest", func(t *testing.T) {
+		config.DB.Migrator().DropTable(models.User{})
+		mock_user_data.Email = "armuh@gmail.com"
+		mock_user_data.Password = "yourpasswd"
+		body, err := json.Marshal(mock_user_data)
+		if err != nil {
+			t.Error(t, err, "error marshal")
+		}
+
+		//send data using request body with HTTP Method POST
+		req := httptest.NewRequest(http.MethodPost, "/register/users", bytes.NewBuffer(body))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		if assert.NoError(t, RegisterUsersController(c)) {
+			bodyResponses := rec.Body.String()
+			var user ResponFailed
+			err := json.Unmarshal([]byte(bodyResponses), &user)
+			if err != nil {
+				assert.Error(t, err, "error marshal")
+			}
+			assert.Equal(t, http.StatusBadRequest, rec.Code)
+			assert.Equal(t, "failed", user.Status)
+			assert.Equal(t, "bad request", user.Message)
 		}
 	})
 }

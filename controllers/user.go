@@ -19,6 +19,11 @@ func RegisterUsersController(c echo.Context) error {
 	var matched bool
 	// Bind all data from JSON
 	c.Bind(&user)
+	// Parse to lower email
+	// lower := strings.ToLower(user.Email)
+	// if user.lower {
+	// 	return c.JSON(http.StatusCreated, responses.StatusSuccess())
+	// }
 	// Check data cannot be empty
 	if user.Name == "" || user.Email == "" {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("input data cannot be empty"))
@@ -151,10 +156,6 @@ func DeleteUserController(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal service error"))
 	}
 	return c.JSON(http.StatusOK, responses.StatusSuccess("success delete user"))
-}
-
-func LoginUsersControllerTest() echo.HandlerFunc {
-	return LoginUsersController
 }
 
 func GetUserControllersTest() echo.HandlerFunc {
