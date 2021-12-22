@@ -112,7 +112,7 @@ func GetPackageByIDController(c echo.Context) error {
 	if e != nil {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to fetch packages"))
 	}
-	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get all packages by ID", paket))
+	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get packages by ID", paket))
 }
 
 func DeletePackageController(c echo.Context) error {
