@@ -56,6 +56,12 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
 	organizer.Email = emailLower
+	// Check Format Password
+	pattern = `^([a-zA-Z0-9()@:%_\+.~#?&//=\n"'\t\\;<>!$*-{}]+ ?){8}$`
+	matched, _ = regexp.Match(pattern, []byte(organizer.Password))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("password must contain password format and more than 8 characters"))
+	}
 	// Check Format Phone Number
 	pattern = `^[0-9]{8,15}$`
 	matched, _ = regexp.Match(pattern, []byte(organizer.PhoneNumber))
@@ -66,7 +72,7 @@ func CreateOrganizerController(c echo.Context) error {
 	pattern = `^[a-zA-Z]([a-zA-Z.0-9,]+ ?)*$`
 	matched, _ = regexp.Match(pattern, []byte(organizer.Address))
 	if !matched {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Address must be valid"))
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("address must be valid"))
 	}
 	// Check Organizer Email is Exist
 	emailCheck, _ := database.CheckDatabase("email", organizer.Email)
@@ -217,6 +223,20 @@ func UpdateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
 	organizer.Email = emailLower
+	// Check Password
+	if organizer.Password == "" {
+		organizer.Password = organizerData.Password
+	} else {
+		// Check Format Password
+		pattern = `^([a-zA-Z0-9()@:%_\+.~#?&//=\n"'\t\\;<>!$*-{}]+ ?){8}$`
+		matched, _ = regexp.Match(pattern, []byte(organizer.Password))
+		if !matched {
+			return c.JSON(http.StatusBadRequest, responses.StatusFailed("password must contain password format and more than 8 characters"))
+		}
+		// hash password bcrypt
+		password, _ := database.GeneratehashPassword(organizer.Password)
+		organizer.Password = password // replace old password to bcrypt password
+	}
 	// Check Format Phone Number
 	pattern = `^[0-9]{8,15}$`
 	matched, _ = regexp.Match(pattern, []byte(organizer.PhoneNumber))
@@ -234,6 +254,12 @@ func UpdateOrganizerController(c echo.Context) error {
 	matched, _ = regexp.Match(pattern, []byte(organizer.About))
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("description cannot be empty"))
+	}
+	// Check Format Address
+	pattern = `^[a-zA-Z]([a-zA-Z.0-9,]+ ?)*$`
+	matched, _ = regexp.Match(pattern, []byte(organizer.Address))
+	if !matched {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Address must be valid"))
 	}
 	// Check Email Organizer is Exist
 	if organizer.Email != organizerData.Email {
@@ -255,6 +281,11 @@ func UpdateOrganizerController(c echo.Context) error {
 		if phonecheck > 0 || er != nil {
 			return c.JSON(http.StatusBadRequest, responses.StatusFailed("phone number was used, try another one"))
 		}
+	}
+	// Check Address Valid Apa Enggak
+	_, _, Err := util.GetGeocodeLocations(organizer.Address)
+	if Err != nil {
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Address "+Err.Error()))
 	}
 	// Edit into database
 	_, err := database.EditOrganizer(organizer, organizer_id)
