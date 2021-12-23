@@ -7,6 +7,7 @@ import (
 	"alta-wedding/models"
 	"net/http"
 	"regexp"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -28,8 +29,9 @@ func RegisterUsersController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("name cannot less than 5 characters"))
 	}
 	// Check Format Email
-	pattern = `^\w+@\w+\.\w+$`
-	matched, _ = regexp.Match(pattern, []byte(user.Email))
+	EmailToLower := strings.ToLower(user.Email)
+	pattern = `^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$`
+	matched, _ = regexp.Match(pattern, []byte(EmailToLower))
 	if !matched {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("email must contain email format"))
 	}
@@ -51,7 +53,7 @@ func RegisterUsersController(c echo.Context) error {
 	}
 	// hash password bcrypt
 	Password, _ := database.GeneratehashPassword(user.Password)
-	user.Password = Password
+	user.Password = Password //replace old password
 	user.Role = "User"
 	_, err := database.RegisterUser(user)
 	if err != nil {
@@ -151,4 +153,16 @@ func DeleteUserController(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal service error"))
 	}
 	return c.JSON(http.StatusOK, responses.StatusSuccess("success delete user"))
+}
+
+func GetUserControllersTest() echo.HandlerFunc {
+	return GetUsersController
+}
+
+func UpdateUserControllersTest() echo.HandlerFunc {
+	return UpdateUserController
+}
+
+func DeleteUserControllersTest() echo.HandlerFunc {
+	return DeleteUserController
 }

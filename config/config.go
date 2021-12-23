@@ -53,7 +53,7 @@ func InitalMigration() {
 func InitDBTest() {
 	dbconfig := map[string]string{
 		"DB_USERNAME":  "root",
-		"DB_PASSWORD":  "",
+		"DB_PASSWORD":  "yourpasswd",
 		"DB_HOST":      "localhost",
 		"DB_PORT":      "3306",
 		"DB_NAME_TEST": "alta_wedding_test"}
@@ -78,6 +78,8 @@ func InitDBTest() {
 func InitalMigrationTest() {
 	DB.Migrator().DropTable(&models.Organizer{})
 	DB.AutoMigrate(&models.Organizer{})
+	DB.Migrator().DropTable(&models.User{})
+	DB.AutoMigrate(&models.User{})
 	DB.Migrator().DropTable(&models.Package{})
 	DB.AutoMigrate(&models.Package{})
 	DB.Migrator().DropTable(&models.Photo{})
