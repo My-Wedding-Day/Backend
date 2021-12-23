@@ -47,6 +47,7 @@ func InitalMigration() {
 	DB.AutoMigrate(&models.Package{})
 	DB.AutoMigrate(&models.Photo{})
 	DB.AutoMigrate(&models.Reservation{})
+	DB.AutoMigrate(&models.Payment{})
 }
 
 // Initia Database Unit Testing
