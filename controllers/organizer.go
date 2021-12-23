@@ -337,7 +337,7 @@ func UpdatePhotoOrganizerController(c echo.Context) error {
 		t.Year(), t.Month(), t.Day(),
 		t.Hour(), t.Minute(), t.Second())
 	organizerName := strings.ReplaceAll(dataWo.WoName, " ", "+")
-	uploaded_file.Filename = fmt.Sprintf("%v-%v.%v", organizerName, formatted, extension)
+	uploaded_file.Filename = fmt.Sprintf("Photo-%v-%v.%v", organizerName, formatted, extension)
 	sw := storageClient.Bucket(bucket).Object(uploaded_file.Filename).NewWriter(ctx)
 	if _, err := io.Copy(sw, f); err != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(err.Error()))
@@ -400,7 +400,7 @@ func UpdateDocumentsOrganizerController(c echo.Context) error {
 		t.Year(), t.Month(), t.Day(),
 		t.Hour(), t.Minute(), t.Second())
 	organizerName := strings.ReplaceAll(dataWo.WoName, " ", "+")
-	uploaded_file.Filename = fmt.Sprintf("%v-%v.%v", organizerName, formatted, extension)
+	uploaded_file.Filename = fmt.Sprintf("Document-%v-%v.%v", organizerName, formatted, extension)
 	sw := storageClient.Bucket(bucket).Object(uploaded_file.Filename).NewWriter(ctx)
 	if _, err := io.Copy(sw, f); err != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(err.Error()))
