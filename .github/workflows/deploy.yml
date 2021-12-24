@@ -19,7 +19,7 @@ jobs:
         script: |
           cd /home/ubuntu/app
           git pull origin main
-          docker stop wedding-app
-          docker rm wedding-app
-          docker build -t wedding-app:latest .
-          docker run -d -p 80:8000 --name wedding-app wedding-app:latest
+          docker stop app
+          docker rm app
+          docker build -t app:latest .
+          docker run -d -p 80:8000 --name app app:latest
