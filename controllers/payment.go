@@ -85,7 +85,7 @@ func PostPaymentController(c echo.Context) error {
 		return c.JSON(http.StatusTeapot, responses.StatusFailed("payment was paid"))
 	}
 	if waiting == nil {
-		return c.JSON(http.StatusNotFound, responses.StatusFailed("data not found"))
+		return c.JSON(http.StatusUnauthorized, responses.StatusUnauthorized())
 	}
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success sending invoice"))
 }
