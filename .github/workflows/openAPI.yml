@@ -18,6 +18,7 @@ tags:
   - name : Organizer
   - name : Package
   - name : Reservations
+  - name : Payment
 paths:
 ####################################
 #   AUTHENTICATION
@@ -1109,7 +1110,49 @@ paths:
   #                   message: "failed get reservations",
   #                   status: "failed"
   #                 }                   
-
+####################################
+#   PAYMENTS
+####################################
+  /payment/invoice:
+    post:
+      tags:
+        - Payment
+      summary: send invoice to wedding stories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestInvoice'
+            examples:
+              userData1:
+                description: "Example sent invoice"
+                value: {
+                  reservationid: 1,
+                  invoice: "https://docs.google.com/presentation/d/1bmnWkUfim1zQqdpA_587jetFUQvIh8dSKw8m_nZTMwU/edit#slide=id.g109727ddc53_0_221",
+                }
+      responses:
+        '201':
+          description: Success Response
+          content:
+            application/json:
+              examples:
+                responseData1:
+                  description: success
+                  value: {
+                    message: "success sending invoice",
+                    status: "success"
+                  }
+        '400':
+          description: Failed Response
+          content:
+            application/json:
+              examples:
+                responseData1:
+                  description: failed
+                  value: {
+                    message: "data not found",
+                    status: "failed"
+                  }
 ####################################
 #   COMPONENTS
 ####################################
@@ -1374,5 +1417,16 @@ components:
       properties:
         "featurename":
           type: string
+    requestInvoice:
+      type: object
+      properties: {
+        "reservationid": {
+          type: integer,
+          minLength: 1
+        },
+        "invoice": {
+          type: string
+        },
+      }
       
         
