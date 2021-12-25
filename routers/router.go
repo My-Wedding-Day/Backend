@@ -65,7 +65,16 @@ func New() *echo.Echo {
 	r.GET("/order/users/my", controllers.GetReservationController)
 
 	r.POST("/payment/invoice", controllers.PostPaymentController)
+<<<<<<< HEAD
 	r.GET("/payment/invoice", controllers.GetInvoiceController)
 
+=======
+	// ------------------------------------------------------------------
+	// ADMIN Authorize
+	// ------------------------------------------------------------------
+	r.POST("/cities", controllers.CreateCityController)
+	r.POST("/cities/new", controllers.CreateNewCityController)
+	e.GET("/cities", controllers.GetCityController)
+>>>>>>> d89e213f040caf0360f2d7874b5b76e24a68555d
 	return e
 }
