@@ -65,6 +65,7 @@ func New() *echo.Echo {
 	r.GET("/order/users/my", controllers.GetReservationController)
 
 	r.POST("/payment/invoice", controllers.PostPaymentController)
+	r.GET("/payment/invoice", controllers.GetInvoiceController)
 
 	return e
 }

@@ -13,6 +13,7 @@ type Reservation struct {
 	Date           string  `gorm:"type:varchar(255)" json:"date" form:"date"`
 	Additional     string  `gorm:"type:varchar(255)" json:"additional" form:"additional"`
 	Total_Pax      int     `gorm:"type:int" json:"total_pax" form:"total_pax"`
+	Total_Price    int     `gorm:"type:int;NOT NULL"`
 	Status_Order   string  `gorm:"type:varchar(50); default:waiting" json:"status_order" form:"status_order"`
 	Status_Payment string  `gorm:"type:varchar(50); default:unpaid" json:"status_payment" form:"status_payment"`
 	Payment        Payment `gorm:"foreignkey:Reservation_ID;references:ID"`

@@ -40,3 +40,9 @@ func GetReservation(id int) ([]models.GetReservationRespon, error) {
 	}
 	return reservation, nil
 }
+
+// Fungsi untuk menambahkan harga berdasarkan qty
+func AddTotalPrice(package_id, reservation_id int) {
+	config.DB.Table("reservations").Joins("join packages on packages.id = reservations.package_id")
+	config.DB.Exec("UPDATE reservations SET total_price = (total_pax * (SELECT price/pax FROM packages WHERE packages.id =?)) WHERE reservations.id =?", package_id, reservation_id)
+}
