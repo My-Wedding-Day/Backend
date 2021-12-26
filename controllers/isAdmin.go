@@ -22,5 +22,6 @@ func GetInvoiceController(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
 	}
-	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get admin", payment))
+
+	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get invoice", payment))
 }
