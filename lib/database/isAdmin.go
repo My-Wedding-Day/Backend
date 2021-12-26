@@ -15,3 +15,19 @@ func GetInvoiceAdmin() ([]models.PaymentInvoice, error) {
 	}
 	return paymentinvoice, nil
 }
+
+func ChangePaymentStatus(idReserve int) (interface{}, error) {
+	var reserve models.Reservation
+	query := config.DB.Find(&reserve, idReserve)
+	if query.Error != nil {
+		return nil, query.Error
+	}
+	if query.RowsAffected == 0 {
+		return 0, nil
+	}
+	updateQuery := config.DB.Model(&models.Reservation{}).Where("id = ?", idReserve).Update("status_payment", "paid")
+	if updateQuery.Error != nil {
+		return nil, query.Error
+	}
+	return reserve, nil
+}
