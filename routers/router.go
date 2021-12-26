@@ -74,5 +74,6 @@ func New() *echo.Echo {
 	r.POST("/cities/new", controllers.CreateNewCityController)
 	e.GET("/cities", controllers.GetCityController)
 	r.PUT("/payment/invoice", controllers.ChangePaymentStatusController)
+
 	return e
 }
