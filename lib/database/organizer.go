@@ -147,6 +147,15 @@ func AcceptDecline(reservation_id int, status string, organizer_id int) (int64, 
 	return query.RowsAffected, nil
 }
 
+// Update Status Keaktifan Organizer
+func UpdateStatusWO(id_organizer int) (int64, error) {
+	tx := config.DB.Model(&models.Organizer{}).Where("id=?", id_organizer).Update("status", "Activated")
+	if tx.Error != nil {
+		return -1, tx.Error
+	}
+	return tx.RowsAffected, nil
+}
+
 // Fungsi untuk enkripsi password organizer
 func GeneratehashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
