@@ -14,28 +14,21 @@ import (
 func CreateReservationController(c echo.Context) error {
 	Reservation := models.Reservation{}
 	c.Bind(&Reservation)
-	// EXTRACT TOKEN LOGIN
-	logged := middlewares.ExtractTokenUserId(c)
-	// GET PACKAGE ID
-	input, _ := database.GetPackagesByID(Reservation.Package_ID)
-	// WRONG INPUT
+	logged := middlewares.ExtractTokenUserId(c)                  // EXTRACT TOKEN LOGIN
+	input, _ := database.GetPackagesByID(Reservation.Package_ID) // GET PACKAGE ID
 	if input == nil {
-		return c.JSON(http.StatusBadRequest, responses.ReservationFailed())
+		return c.JSON(http.StatusBadRequest, responses.ReservationFailed()) // WRONG INPUT
 	}
-	// TRANSFER DATA FROM TOKEN
-	Reservation.User_ID = logged
-	// CREATE RESERVATION
-	respon, err := database.CreateReservation(&Reservation)
-	// DATABASE OR SERVER INTERNAL ERROR
+	Reservation.User_ID = logged                            // TRANSFER DATA FROM TOKEN
+	respon, err := database.CreateReservation(&Reservation) // CREATE RESERVATION
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
+		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error")) // DATABASE OR SERVER INTERNAL ERROR
 	}
-	// DATABASE ALREADY RESERVATION
 	if respon == nil {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("already reserve"))
+		return c.JSON(http.StatusBadRequest, responses.StatusFailed("already reserve")) // DATABASE ALREADY RESERVATION
 	}
-	// RESERVATION SUCCESS
-	return c.JSON(http.StatusCreated, responses.ReservationSuccess())
+	database.AddTotalPrice(Reservation.Package_ID, respon.ID)         // PERKALIAN DI QUERY
+	return c.JSON(http.StatusCreated, responses.ReservationSuccess()) // RESERVATION SUCCESS
 }
 
 func GetReservationController(c echo.Context) error {
