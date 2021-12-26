@@ -450,7 +450,7 @@ func TestUpdateUserControllerSucces(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	var update = EditUserRequest{
+	var update = models.User{
 		Name:     "iniupdate",
 		Email:    "iniupdate@gmail.com",
 		Password: "qwertyuiop",
@@ -468,18 +468,12 @@ func TestUpdateUserControllerSucces(t *testing.T) {
 	c := e.NewContext(req, rec)
 	c.SetPath("/users/profile")
 	middleware.JWT([]byte(constants.SECRET_JWT))(UpdateUserControllersTest())(c)
-	if assert.NoError(t, UpdateUserController(c)) {
-		bodyuser := rec.Body.String()
-		var user UsersResponseSuccess
-		json.Unmarshal([]byte(bodyuser), &user)
-		if err != nil {
-			assert.Error(t, err, "error marshal")
-		}
-		assert.Equal(t, http.StatusCreated, rec.Code)
-		assert.Equal(t, "", user.Status)
-		assert.Equal(t, "", user.Message)
-		assert.Equal(t, "", user.Data.Role)
-	}
+	bodyuser := rec.Body.String()
+	var user UsersResponseSuccess
+	json.Unmarshal([]byte(bodyuser), &user)
+	assert.Equal(t, http.StatusCreated, rec.Code)
+	assert.Equal(t, "success", user.Status)
+	assert.Equal(t, "success update user", user.Message)
 }
 
 /*
