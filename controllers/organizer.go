@@ -418,6 +418,7 @@ func UpdateDocumentsOrganizerController(c echo.Context) error {
 	if e != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
 	}
+	database.UpdateStatusWO(organizer_id)
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success upload document"))
 }
 
