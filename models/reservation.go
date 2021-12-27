@@ -24,7 +24,10 @@ type GetReservationRespon struct {
 	ID             int
 	Package_ID     int
 	WoName         string
+	PhoneNumber    string
 	PackageName    string
+	Address        string
+	Email          string
 	Date           string
 	Additional     string
 	Total_Pax      int
