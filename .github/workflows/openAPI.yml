@@ -13,7 +13,7 @@ servers:
 tags:
   - name : Auth
     description: Authentication
-  - name : Home
+  # - name : Home
   - name : Users
   - name : Organizer
   - name : Package
@@ -87,7 +87,7 @@ paths:
                     password: "inipassword"
                   }
         responses:
-          '200':
+          '201':
             description: Success Response
             content:
               application/json:
@@ -114,54 +114,54 @@ paths:
                       status: "failed",
                       message: "Login Failed. Email and Password incorrect."
                     }  
-  ####################################
-  #   HOME
-  #################################### 
-  /:
-    get:
-      tags:
-        - Home
-      summary: Get Home Display
-      responses:
-        '200':
-          description: Success Response
-          content:
-            application/json:
-              examples:
-                userData1:
-                  description: "Example data user"
-                  value: {
-                    data: [{
-                      package_id: 1,
-                      Organizer_ID: 1,
-                      PackageName: "Wedding 1 Malam",
-                      Price: 100000000,
-                      Pax: 100,
-                      PackageDesc: "ini adalah paket wedding 1 malam"
-                    },
-                    {
-                      package_id: 2,
-                      Organizer_ID: 2,
-                      PackageName: "Wedding 2 Malam",
-                      Price: 200000000,
-                      Pax: 200,
-                      PackageDesc: "ini adalah paket wedding 2 malam"
-                    }],
-                    message: "success get package",
-                    status: "success"
-                  }
-        '400':
-          description: Failed Response
-          content:
-            application/json:
-              examples:
-                responseData1:
-                  description: Failed Get Package
-                  value: {
-                    message: "Failed Get Package",
-                    status: "Failed"
-                  }
-
+  # ####################################
+  # #   HOME
+  # #################################### 
+  # /:
+  #   get:
+  #     tags:
+  #       - Home
+  #     summary: Get Home Display
+  #     responses:
+  #       '200':
+  #         description: Success Response
+  #         content:
+  #           application/json:
+  #             examples:
+  #               userData1:
+  #                 description: "Example data user"
+  #                 value: {
+  #                   data: [{
+  #                     package_id: 1,
+  #                     Organizer_ID: 1,
+  #                     PackageName: "Wedding 1 Malam",
+  #                     Price: 100000000,
+  #                     Pax: 100,
+  #                     PackageDesc: "ini adalah paket wedding 1 malam"
+  #                   },
+  #                   {
+  #                     package_id: 2,
+  #                     Organizer_ID: 2,
+  #                     PackageName: "Wedding 2 Malam",
+  #                     Price: 200000000,
+  #                     Pax: 200,
+  #                     PackageDesc: "ini adalah paket wedding 2 malam"
+  #                   }],
+  #                   message: "success get package",
+  #                   status: "success"
+  #                 }
+  #       '400':
+  #         description: Failed Response
+  #         content:
+  #           application/json:
+  #             examples:
+  #               responseData1:
+  #                 description: Failed Get Package
+  #                 value: {
+  #                   message: "Failed Get Package",
+  #                   status: "Failed"
+  #                 }
+  
   ####################################
   #   USER
   #################################### 
@@ -496,20 +496,59 @@ paths:
                     message: "Unauthorized Access",
                     status: "Unauthorized"
                   }
-    delete:
+    # delete:
+    #   tags:
+    #     - Organizer
+    #   summary: delete organizer
+    #   responses:
+    #     '200':
+    #       description: Success Response
+    #       content:
+    #         application/json:
+    #           examples:
+    #             userData1:
+    #               description: "Example data organizer"
+    #               value: {
+    #                 message: "success delete organizer",
+    #                 status: "success"
+    #               }
+    #     '401':
+    #       description: Failed Response
+    #       content:
+    #         application/json:
+    #           examples:
+    #             responseData1:
+    #               description: Different ID
+    #               value: {
+    #                 message: "Unauthorized Access",
+    #                 status: "Unauthorized"
+    #               }
+  /organizer/profile/photo:
+    put:
       tags:
         - Organizer
-      summary: delete organizer
+      summary: Update Photos Account Organizer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestUpdatePhotoWO'
+            examples:
+              userData1:
+                description: "Example data user"
+                value: {
+                  logo: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
+                }
       responses:
-        '200':
+        '201':
           description: Success Response
           content:
             application/json:
               examples:
-                userData1:
-                  description: "Example data organizer"
+                responseData1:
+                  description: success
                   value: {
-                    message: "success delete organizer",
+                    message: "Success update data organizer",
                     status: "success"
                   }
         '401':
@@ -523,6 +562,45 @@ paths:
                     message: "Unauthorized Access",
                     status: "Unauthorized"
                   }
+  /organizer/profile/document:
+    put:
+      tags:
+        - Organizer
+      summary: Update Document Account Organizer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestUpdateDocumentWO'
+            examples:
+              userData1:
+                description: "Example data user"
+                value: {
+                  file: "https://trello.com/1/cards/61b2121947c45d456109ac16/attachments/61b34d5757f4352a736dff8c/previews/61b34d5857f4352a736e000a/download/wedding_%282%29.jpg"
+                }
+      responses:
+        '201':
+          description: Success Response
+          content:
+            application/json:
+              examples:
+                responseData1:
+                  description: success
+                  value: {
+                    message: "Success update data organizer",
+                    status: "success"
+                  }
+        '401':
+          description: Failed Response
+          content:
+            application/json:
+              examples:
+                responseData1:
+                  description: Different ID
+                  value: {
+                    message: "Unauthorized Access",
+                    status: "Unauthorized"
+                  }                
   /organizer/profile/:id:
     get:
       tags:
@@ -1153,6 +1231,82 @@ paths:
                     message: "data not found",
                     status: "failed"
                   }
+    get:
+      tags:
+        - Payment
+      summary: Get invoice from user
+      responses:
+        '200':
+          description: Success Response
+          content:
+            application/json:
+              examples:
+                responseData1:
+                  description: success
+                  value: {
+                    data: [
+                      {
+                        ID: 1,
+                        reservationid: 1,
+                        userid: 1,
+                        urlphoto: "https://docs.google.com/presentation/d/1bmnWkUfim1zQqdpA_587jetFUQvIh8dSKw8m_nZTMwU/edit#slide=id.g109727ddc53_0_221",
+                        StatusPayment: "not paided",
+                        Price: 1000000000,
+                        Total_Pax: 1000,
+                        Total_Price: 1000000000,
+                      },
+                    ],
+                    "message": "success",
+                    "status": "success"
+                  }
+        '400':
+          description: Failed Response
+          content:
+            application/json:
+              examples:
+                responseData1:
+                  description: failed
+                  value: {
+                    message: "data not found",
+                    status: "failed"
+                  } 
+    put:
+      tags:
+        - Payment
+      summary: update payment status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestUpdatePaymentStatus'
+            examples:
+              userData1:
+                description: "Example sent invoice"
+                value: {
+                  reservationid: 1                }
+      responses:
+        '201':
+          description: Success Response
+          content:
+            application/json:
+              examples:
+                responseData1:
+                  description: success
+                  value: {
+                    message: "success to update order status",
+                    status: "success"
+                  }
+        '400':
+          description: Failed Response
+          content:
+            application/json:
+              examples:
+                responseData1:
+                  description: failed
+                  value: {
+                    message: "data not found",
+                    status: "failed"
+                  }                             
 ####################################
 #   COMPONENTS
 ####################################
@@ -1428,5 +1582,30 @@ components:
           type: string
         },
       }
+
+    requestUpdatePaymentStatus:
+      type: object
+      properties: {
+        "reservationid": {
+          type: integer,
+          minLength: 1
+        },
+      }
+
+    requestUpdatePhotoWO:
+      type: object
+      properties: {
+        "logo":{
+          type: string
+        }
+      }
+
+    requestUpdateDocumentWO:
+      type: object
+      properties: {
+        "file":{
+          type: string
+        }
+      }    
       
         
