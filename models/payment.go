@@ -19,7 +19,11 @@ type Payment struct {
 type PaymentInvoice struct {
 	ID             int
 	Reservation_ID int
-	User_ID        int
+	Name           string
+	Email          string
+	WoName         string
+	PackageName    string
+	Date           string
 	UrlPhoto       string
 	Status_Payment string
 	Total_Price    int
