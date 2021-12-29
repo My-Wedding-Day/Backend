@@ -36,10 +36,10 @@ import (
 // 	Data    models.Organizer
 // }
 
-// type ResponSuccess struct {
-// 	Status  string
-// 	Message string
-// }
+type ResponSuccess struct {
+	Status  string
+	Message string
+}
 
 // type ReservationResponSuccess struct {
 // 	Status  string

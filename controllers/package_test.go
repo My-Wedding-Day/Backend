@@ -9,8 +9,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/labstack/echo/v4"
@@ -54,7 +57,7 @@ var (
 	mock_data_foto = models.Photo{
 		Package_ID: 1,
 		Photo_Name: "Coba",
-		UrlPhoto:   "fotoini.com",
+		UrlPhoto:   "./cydra.png",
 	}
 	mock_data_organizer2 = models.Organizer{
 		WoName:      "coba2wedd",
@@ -342,4 +345,229 @@ func TestUpdatePackageFalseID(t *testing.T) {
 	json.Unmarshal([]byte(bodyReq), &paket)
 	assert.Equal(t, http.StatusUnauthorized, res.Code)
 	assert.Equal(t, "Unauthorized Access", paket.Message)
+}
+
+func TestDeletePackageByIDSuccess(t *testing.T) {
+	e := InitEchoTestAPIPackage()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataPackageTanpaFotoToDB()
+	InsertMockDataFotoToDB()
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	req := httptest.NewRequest(http.MethodDelete, "/package/:id", nil)
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	res := httptest.NewRecorder()
+	contex := e.NewContext(req, res)
+	contex.SetPath("/package/:id")
+	contex.SetParamNames("id")
+	contex.SetParamValues("1")
+	middleware.JWT([]byte(constants.SECRET_JWT))(DeletePackageControllerTest())(contex)
+
+	var paket PackageSingleResponSuccess
+	body := res.Body.String()
+	json.Unmarshal([]byte(body), &paket)
+	assert.Equal(t, http.StatusOK, res.Code)
+	assert.Equal(t, "success deleted package", paket.Message)
+	assert.Equal(t, "success", paket.Status)
+	// assert.Equal(t, "Coba", paket.Data.PackageName)
+	// assert.Equal(t, 100, paket.Data.Pax)
+}
+
+func TestDeletePackageByIDFalseParam(t *testing.T) {
+	e := InitEchoTestAPIPackage()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataPackageTanpaFotoToDB()
+	InsertMockDataFotoToDB()
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	req := httptest.NewRequest(http.MethodDelete, "/package/:id", nil)
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	res := httptest.NewRecorder()
+	contex := e.NewContext(req, res)
+	contex.SetPath("/package/:id")
+	contex.SetParamNames("id")
+	contex.SetParamValues("#")
+	middleware.JWT([]byte(constants.SECRET_JWT))(DeletePackageControllerTest())(contex)
+
+	var paket PackageSingleResponSuccess
+	body := res.Body.String()
+	json.Unmarshal([]byte(body), &paket)
+	assert.Equal(t, http.StatusBadRequest, res.Code)
+	assert.Equal(t, "false param", paket.Message)
+	assert.Equal(t, "failed", paket.Status)
+	// assert.Equal(t, "Coba", paket.Data.PackageName)
+	// assert.Equal(t, 100, paket.Data.Pax)
+}
+
+func TestDeletePackageFalseID(t *testing.T) {
+	e := InitEchoTestAPIPackage()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataOrganizer2ToDB()
+	InsertMockDataPackageTanpaFotoToDB()
+	InsertMockDataFotoToDB()
+
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo2.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	req := httptest.NewRequest(http.MethodPut, "/package/:id", nil)
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	res := httptest.NewRecorder()
+	context := e.NewContext(req, res)
+	context.SetPath("/package/:id")
+	context.SetParamNames("id")
+	context.SetParamValues("1")
+	middleware.JWT([]byte(constants.SECRET_JWT))(DeletePackageControllerTest())(context)
+
+	var paket PackageSingleResponSuccess
+	bodyReq := res.Body.String()
+	json.Unmarshal([]byte(bodyReq), &paket)
+	assert.Equal(t, http.StatusUnauthorized, res.Code)
+	assert.Equal(t, "Unauthorized Access", paket.Message)
+}
+
+func TestDeletePackageFailedFetch(t *testing.T) {
+	e := InitEchoTestAPIPackage()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataPackageTanpaFotoToDB()
+	InsertMockDataFotoToDB()
+
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	req := httptest.NewRequest(http.MethodPut, "/package/:id", nil)
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	res := httptest.NewRecorder()
+	context := e.NewContext(req, res)
+	context.SetPath("/package/:id")
+	context.SetParamNames("id")
+	context.SetParamValues("1")
+	config.DB.Migrator().DropTable(&models.Package{})
+	config.DB.Migrator().DropTable(&models.Photo{})
+	config.DB.Migrator().DropTable(&models.Organizer{})
+	middleware.JWT([]byte(constants.SECRET_JWT))(DeletePackageControllerTest())(context)
+
+	var paket PackageSingleResponSuccess
+	bodyReq := res.Body.String()
+	json.Unmarshal([]byte(bodyReq), &paket)
+	assert.Equal(t, http.StatusBadRequest, res.Code)
+	assert.Equal(t, "failed to fetch package", paket.Message)
+}
+
+func TestUpdatePhotoPackageControllerSuccess(t *testing.T) {
+	e := InitEchoTestAPIPackage()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataPackageTanpaFotoToDB()
+	InsertMockDataFotoToDB()
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+
+	path := mock_data_foto.UrlPhoto
+
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("urlphoto", path)
+	assert.NoError(t, err)
+	sample, err := os.Open(path)
+	assert.NoError(t, err)
+
+	_, err = io.Copy(part, sample)
+	assert.NoError(t, err)
+	assert.NoError(t, writer.Close())
+
+	req := httptest.NewRequest(http.MethodPut, "/package/photo/:id", body)
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
+	rec := httptest.NewRecorder()
+	context := e.NewContext(req, rec)
+	context.SetPath("/package/photo/:id")
+	context.SetParamNames("id")
+	context.SetParamValues("1")
+	middleware.JWT([]byte(constants.SECRET_JWT))(UpdatePhotoPackageControllerTest())(context)
+
+	var Photo ResponSuccess
+	bodyReq := rec.Body.String()
+	json.Unmarshal([]byte(bodyReq), &Photo)
+	assert.Equal(t, "success upload photo", Photo.Message)
+	assert.Equal(t, http.StatusCreated, rec.Code)
+}
+
+func TestInsertPackageControllerSuccess(t *testing.T) {
+	e := InitEchoTestAPIPackage()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataPackageTanpaFotoToDB()
+	InsertMockDataFotoToDB()
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+
+	path := mock_data_foto.UrlPhoto
+
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("urlphoto", path)
+	assert.NoError(t, err)
+	sample, err := os.Open(path)
+	assert.NoError(t, err)
+
+	_, err = io.Copy(part, sample)
+	assert.NoError(t, err)
+	assert.NoError(t, writer.Close())
+
+	req := httptest.NewRequest(http.MethodPost, "/package", body)
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
+	rec := httptest.NewRecorder()
+	context := e.NewContext(req, rec)
+	context.SetPath("/package")
+	middleware.JWT([]byte(constants.SECRET_JWT))(InsertPackageControllerTest())(context)
+
+	var Photo ResponSuccess
+	bodyReq := rec.Body.String()
+	json.Unmarshal([]byte(bodyReq), &Photo)
+	assert.Equal(t, "success to input package", Photo.Message)
+	assert.Equal(t, http.StatusCreated, rec.Code)
+
 }
