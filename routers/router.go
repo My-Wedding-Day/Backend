@@ -64,5 +64,16 @@ func New() *echo.Echo {
 	r.PUT("/order/status/:id", controllers.AcceptDeclineController)
 	r.GET("/order/users/my", controllers.GetReservationController)
 
+	r.POST("/payment/invoice", controllers.PostPaymentController)
+	r.GET("/payment/invoice", controllers.GetInvoiceController)
+
+	// ------------------------------------------------------------------
+	// ADMIN Authorize
+	// ------------------------------------------------------------------
+	r.POST("/cities", controllers.CreateCityController)
+	r.POST("/cities/new", controllers.CreateNewCityController)
+	e.GET("/cities", controllers.GetCityController)
+	r.PUT("/payment/invoice", controllers.ChangePaymentStatusController)
+
 	return e
 }

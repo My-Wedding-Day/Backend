@@ -11,9 +11,9 @@ type GetPackageStruct struct {
 	Wo_Name      string
 	City         string
 	Address      string
-	PackageName  string
+	PackageName  string `json:"packagename"`
 	Price        int
-	Pax          int
+	Pax          int `json:"pax"`
 	PackageDesc  string
 	UrlPhoto     string
 }

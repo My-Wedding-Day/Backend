@@ -112,7 +112,7 @@ func GetPackageByIDController(c echo.Context) error {
 	if e != nil {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to fetch packages"))
 	}
-	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get all packages by ID", paket))
+	return c.JSON(http.StatusOK, responses.StatusSuccessData("success get packages by ID", paket))
 }
 
 func DeletePackageController(c echo.Context) error {
@@ -130,26 +130,17 @@ func DeletePackageController(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to fetch package"))
 	}
-	getPackageJSON, err := json.Marshal(getPackage)
-	if err != nil {
-		panic(err)
-	}
+	getPackageJSON, _ := json.Marshal(getPackage)
 
 	var responsePackage models.Package
 	json.Unmarshal([]byte(getPackageJSON), &responsePackage)
 
 	if getPackage.Organizer_ID != idToken {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Unauthorized Access"))
+		return c.JSON(http.StatusUnauthorized, responses.StatusFailed("Unauthorized Access"))
 	}
 
 	// Mengapus data satu product menggunakan fungsi DeleteShoppingCart
-	paket, e := database.DeletePackage(id)
-	if e != nil {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("failed to delete package"))
-	}
-	if paket == 0 {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("package id not found"))
-	}
+	database.DeletePackage(id)
 	return c.JSON(http.StatusOK, responses.StatusSuccess("success deleted package"))
 }
 
@@ -228,4 +219,20 @@ func UpdatePhotoPackageController(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
 	}
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success upload photo"))
+}
+
+func UpdatePackageControllerTest() echo.HandlerFunc {
+	return UpdatePackageController
+}
+
+func DeletePackageControllerTest() echo.HandlerFunc {
+	return DeletePackageController
+}
+
+func UpdatePhotoPackageControllerTest() echo.HandlerFunc {
+	return UpdatePhotoPackageController
+}
+
+func InsertPackageControllerTest() echo.HandlerFunc {
+	return InsertPackageController
 }

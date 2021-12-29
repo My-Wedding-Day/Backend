@@ -27,10 +27,10 @@ func CreateReservation(reservation *models.Reservation) (*models.Reservation, er
 }
 
 // Fungsi untuk mendapatkan reservasi by reservasi id
-func GetReservation(id int) (interface{}, error) {
-	var reservation models.GetReservationRespon
-	query := config.DB.Table("reservations").Select("reservations.id, reservations.package_id, packages.package_name, organizers.wo_name, reservations.date, reservations.additional, reservations.total_pax, reservations.status_order, reservations.status_payment").
-		Joins("join packages on packages.id = reservations.package_id").Joins("join organizers on organizers.id = packages.organizer_id").
+func GetReservation(id int) ([]models.GetReservationRespon, error) {
+	var reservation []models.GetReservationRespon
+	query := config.DB.Table("reservations").Select("reservations.id, reservations.package_id, users.email, packages.package_name, organizers.wo_name, organizers.phone_number, organizers.address, reservations.date, reservations.additional, reservations.total_pax, reservations.status_order, reservations.status_payment").
+		Joins("join packages on packages.id = reservations.package_id").Joins("join organizers on organizers.id = packages.organizer_id").Joins("join users on users.id = reservations.user_id").
 		Where("reservations.user_id = ? AND reservations.deleted_at is NULL", id).Find(&reservation)
 	if query.Error != nil {
 		return nil, query.Error
@@ -39,4 +39,10 @@ func GetReservation(id int) (interface{}, error) {
 		return nil, nil
 	}
 	return reservation, nil
+}
+
+// Fungsi untuk menambahkan harga berdasarkan qty
+func AddTotalPrice(package_id, reservation_id int) {
+	config.DB.Table("reservations").Joins("join packages on packages.id = reservations.package_id")
+	config.DB.Exec("UPDATE reservations SET total_price = (total_pax * (SELECT price/pax FROM packages WHERE packages.id =?)) WHERE reservations.id =?", package_id, reservation_id)
 }
