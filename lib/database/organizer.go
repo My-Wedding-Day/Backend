@@ -102,7 +102,7 @@ func EditDocumentOrganizer(url string, organizer_id int) (int64, error) {
 func FindProfilOrganizer(id int) (*models.ProfileRespon, error) {
 	organizer := models.ProfileRespon{}
 	tx := config.DB.Table("organizers").Select(
-		"organizers.id, organizers.wo_name, organizers.email, organizers.phone_number, organizers.about, organizers.web_url, organizers.status, organizers.logo, organizers.city, organizers.address").
+		"organizers.id, organizers.wo_name, organizers.email, organizers.phone_number, organizers.about, organizers.web_url, organizers.status, organizers.logo, organizers.city, organizers.address, organizers.proof").
 		Where("organizers.deleted_at IS NULL AND organizers.id=?", id).Find(&organizer)
 	if tx.Error != nil {
 		return nil, tx.Error
@@ -145,6 +145,15 @@ func AcceptDecline(reservation_id int, status string, organizer_id int) (int64, 
 		}
 	}
 	return query.RowsAffected, nil
+}
+
+// Update Status Keaktifan Organizer
+func UpdateStatusWO(id_organizer int) (int64, error) {
+	tx := config.DB.Model(&models.Organizer{}).Where("id=?", id_organizer).Update("status", "Activated")
+	if tx.Error != nil {
+		return -1, tx.Error
+	}
+	return tx.RowsAffected, nil
 }
 
 // Fungsi untuk enkripsi password organizer

@@ -52,6 +52,7 @@ type ProfileRespon struct {
 	Logo        string `json:"logo" form:"logo"`
 	City        string `json:"city" form:"city"`
 	Address     string `json:"address" form:"address"`
+	Proof       string `json:"proof" form:"proof"`
 }
 
 type ReservationListRespon struct {
