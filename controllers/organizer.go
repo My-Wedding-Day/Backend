@@ -5,7 +5,6 @@ import (
 	"alta-wedding/lib/responses"
 	"alta-wedding/middlewares"
 	"alta-wedding/models"
-	"alta-wedding/util"
 	"fmt"
 	"io"
 	"net/http"
@@ -85,14 +84,10 @@ func CreateOrganizerController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.StatusFailed("business name was used, try another one"))
 	}
 	// Check Address
-	_, _, Err := util.GetGeocodeLocations(organizer.Address)
-	if Err != nil {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Address "+Err.Error()))
-	}
-	// Check Length of Character of PhoneNumber and Password
-	if len(organizer.Password) < 8 {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("password cannot less than 8 characters"))
-	}
+	// _, _, Err := util.GetGeocodeLocations(organizer.Address)
+	// if Err != nil {
+	// 	return c.JSON(http.StatusBadRequest, responses.StatusFailed("Address "+Err.Error()))
+	// }
 	// Check Phone number existing
 	phonecheck, _ := database.CheckDatabase("phone_number", organizer.PhoneNumber)
 	if phonecheck > 0 {
@@ -283,15 +278,12 @@ func UpdateOrganizerController(c echo.Context) error {
 		}
 	}
 	// Check Address Valid Apa Enggak
-	_, _, Err := util.GetGeocodeLocations(organizer.Address)
-	if Err != nil {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("Address "+Err.Error()))
-	}
+	// _, _, Err := util.GetGeocodeLocations(organizer.Address)
+	// if Err != nil {
+	// 	return c.JSON(http.StatusBadRequest, responses.StatusFailed("Address "+Err.Error()))
+	// }
 	// Edit into database
-	_, err := database.EditOrganizer(organizer, organizer_id)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
-	}
+	database.EditOrganizer(organizer, organizer_id)
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success edit data"))
 }
 
@@ -445,7 +437,17 @@ func AcceptDeclineControllerTest() echo.HandlerFunc {
 	return AcceptDeclineController
 }
 
-// Testing Accept/Decline Feature
+// Testing Update Profile Organizer Feature
 func UpdateOrganizerControllerTest() echo.HandlerFunc {
 	return UpdateOrganizerController
+}
+
+// Testing Foto Feature
+func UpdatePhotoOrganizerControllerTest() echo.HandlerFunc {
+	return UpdatePhotoOrganizerController
+}
+
+// Testing Document Feature
+func UpdateDocumentsOrganizerControllerTest() echo.HandlerFunc {
+	return UpdateDocumentsOrganizerController
 }
