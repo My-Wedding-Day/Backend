@@ -232,3 +232,7 @@ func UpdatePhotoPackageController(c echo.Context) error {
 	}
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success upload photo"))
 }
+
+func UpdatePackageControllerTest() echo.HandlerFunc {
+	return UpdatePackageController
+}

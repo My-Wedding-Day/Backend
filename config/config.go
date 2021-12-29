@@ -51,11 +51,43 @@ func InitalMigration() {
 	DB.AutoMigrate(&models.City{})
 }
 
+// // Inisiasi koneksi ke database untuk melakukan unit testing
+// func InitDBTest() {
+// 	dbconfig := GetConfig()
+// 	// Sesuaikan dengan database kalian
+// 	connect := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8&parseTime=True&loc=Local",
+// 		dbconfig["DB_USERNAME_TEST"],
+// 		dbconfig["DB_PASSWORD_TEST"],
+// 		dbconfig["DB_HOST_TEST"],
+// 		dbconfig["DB_PORT_TEST"],
+// 		dbconfig["DB_NAME_TEST"])
+
+// 	var err error
+// 	DB, err = gorm.Open(mysql.Open(connect), &gorm.Config{})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	InitialMigrationTest()
+// }
+
+// // Inisiasi koneksi ke database untuk melakukan unit testing
+// func InitDBTest() {
+// 	connectionStringTest := os.Getenv("CONNECTION_STRING_TEST")
+
+// 	// Koneksi ke DB
+// 	var err error
+// 	DB, err = gorm.Open(mysql.Open(connectionStringTest), &gorm.Config{})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	InitialMigrationTest()
+// }
+
 // Initia Database Unit Testing
 func InitDBTest() {
 	dbconfig := map[string]string{
 		"DB_USERNAME":  "root",
-		"DB_PASSWORD":  "yourpasswd",
+		"DB_PASSWORD":  "Nathan241199",
 		"DB_HOST":      "localhost",
 		"DB_PORT":      "3306",
 		"DB_NAME_TEST": "alta_wedding_test"}
@@ -73,11 +105,11 @@ func InitDBTest() {
 	if err != nil {
 		panic(err)
 	}
-	InitalMigrationTest()
+	InitialMigrationTest()
 }
 
 // Function Initial Migration (Tabel)
-func InitalMigrationTest() {
+func InitialMigrationTest() {
 	DB.Migrator().DropTable(&models.Organizer{})
 	DB.AutoMigrate(&models.Organizer{})
 	DB.Migrator().DropTable(&models.User{})
