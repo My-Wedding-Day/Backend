@@ -22,6 +22,7 @@ import (
 
 var (
 	storageClient *storage.Client
+	bucket        = "alta_wedding"
 )
 
 const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
@@ -292,7 +293,7 @@ func UpdatePhotoOrganizerController(c echo.Context) error {
 	organizer_id := middlewares.ExtractTokenUserId(c)
 	dataWo, _ := database.FindOrganizerById(organizer_id)
 	// Process Upload Photo to Google Cloud
-	bucket := "alta_wedding"
+
 	var err error
 	ctx := appengine.NewContext(c.Request())
 	storageClient, err = storage.NewClient(ctx, option.WithCredentialsFile("keys.json"))
@@ -319,8 +320,8 @@ func UpdatePhotoOrganizerController(c echo.Context) error {
 	if er != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(er.Error()))
 	}
-	if uploaded_file.Size > MAX_UPLOAD_SIZE*5 {
-		return c.JSON(http.StatusBadGateway, responses.StatusFailed("The uploaded file is too big. Please choose an file that's less than 5MB in size"))
+	if uploaded_file.Size > MAX_UPLOAD_SIZE*3 {
+		return c.JSON(http.StatusBadGateway, responses.StatusFailed("The uploaded file is too big. Please choose an file that's less than 3MB in size"))
 	}
 	ext := strings.Split(uploaded_file.Filename, ".")
 	extension := ext[len(ext)-1]
@@ -343,10 +344,7 @@ func UpdatePhotoOrganizerController(c echo.Context) error {
 	}
 	// Insert URL
 	urlLogo := fmt.Sprintf("%v", u)
-	_, e := database.EditPhotoOrganizer(urlLogo, organizer_id)
-	if e != nil {
-		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
-	}
+	database.EditPhotoOrganizer(urlLogo, organizer_id)
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success upload photo"))
 }
 
@@ -355,7 +353,6 @@ func UpdateDocumentsOrganizerController(c echo.Context) error {
 	organizer_id := middlewares.ExtractTokenUserId(c)
 	dataWo, _ := database.FindOrganizerById(organizer_id)
 	// Process Upload Photo to Google Cloud
-	bucket := "alta_wedding"
 	var err error
 	ctx := appengine.NewContext(c.Request())
 	storageClient, err = storage.NewClient(ctx, option.WithCredentialsFile("keys.json"))
@@ -382,8 +379,8 @@ func UpdateDocumentsOrganizerController(c echo.Context) error {
 	if er != nil {
 		return c.JSON(http.StatusInternalServerError, responses.StatusFailedDataPhoto(er.Error()))
 	}
-	if uploaded_file.Size > MAX_UPLOAD_SIZE*5 {
-		return c.JSON(http.StatusBadGateway, responses.StatusFailed("The uploaded file is too big. Please choose an file that's less than 5MB in size"))
+	if uploaded_file.Size > MAX_UPLOAD_SIZE*3 {
+		return c.JSON(http.StatusBadGateway, responses.StatusFailed("The uploaded file is too big. Please choose an file that's less than 3MB in size"))
 	}
 	ext := strings.Split(uploaded_file.Filename, ".")
 	extension := ext[len(ext)-1]
@@ -406,10 +403,7 @@ func UpdateDocumentsOrganizerController(c echo.Context) error {
 	}
 	// Insert URL
 	urlDocument := fmt.Sprintf("%v", u)
-	_, e := database.EditDocumentOrganizer(urlDocument, organizer_id)
-	if e != nil {
-		return c.JSON(http.StatusInternalServerError, responses.StatusFailed("internal server error"))
-	}
+	database.EditDocumentOrganizer(urlDocument, organizer_id)
 	database.UpdateStatusWO(organizer_id)
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success upload document"))
 }

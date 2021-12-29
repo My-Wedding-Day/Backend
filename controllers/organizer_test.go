@@ -1297,7 +1297,7 @@ func TestUpdatePhotoControllerSuccess(t *testing.T) {
 		t.Error("error create token")
 	}
 
-	path := "cobafoto.jpeg"
+	path := "../util/images/cobafoto.jpeg"
 
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
@@ -1323,7 +1323,131 @@ func TestUpdatePhotoControllerSuccess(t *testing.T) {
 	json.Unmarshal([]byte(bodyReq), &Photo)
 	assert.Equal(t, "success upload photo", Photo.Message)
 	assert.Equal(t, http.StatusCreated, rec.Code)
+}
+func TestUpdatePhotoControllerFailed(t *testing.T) {
+	e := InitEchoTestAPI()
+	InsertMockDataOrganizerToDB()
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	t.Run("TestPhoto_FailedForm", func(t *testing.T) {
+		path := "../util/images/cobafoto.jpeg"
 
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		part, err := writer.CreateFormFile("salah", path)
+		assert.NoError(t, err)
+		sample, err := os.Open(path)
+		assert.NoError(t, err)
+
+		_, err = io.Copy(part, sample)
+		assert.NoError(t, err)
+		assert.NoError(t, writer.Close())
+
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile/photo", body)
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
+		rec := httptest.NewRecorder()
+		context := e.NewContext(req, rec)
+		context.SetPath("/organizer/profile/photo")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdatePhotoOrganizerControllerTest())(context)
+
+		var Photo ResponseFailed
+		bodyReq := rec.Body.String()
+		json.Unmarshal([]byte(bodyReq), &Photo)
+		assert.Equal(t, "http: no such file", Photo.Message)
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	})
+	t.Run("TestPhoto_FailedExtension", func(t *testing.T) {
+		path := "../util/images/cobadoc.pdf"
+
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		part, err := writer.CreateFormFile("logo", path)
+		assert.NoError(t, err)
+		sample, err := os.Open(path)
+		assert.NoError(t, err)
+
+		_, err = io.Copy(part, sample)
+		assert.NoError(t, err)
+		assert.NoError(t, writer.Close())
+
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile/photo", body)
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
+		rec := httptest.NewRecorder()
+		context := e.NewContext(req, rec)
+		context.SetPath("/organizer/profile/photo")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdatePhotoOrganizerControllerTest())(context)
+
+		var Photo ResponseFailed
+		bodyReq := rec.Body.String()
+		json.Unmarshal([]byte(bodyReq), &Photo)
+		assert.Equal(t, "The provided file format is not allowed. Please upload a JPEG or PNG image", Photo.Message)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+	})
+	t.Run("TestPhoto_FailedSizeToBig", func(t *testing.T) {
+		path := "../util/images/photo-over-size.png"
+
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		part, err := writer.CreateFormFile("logo", path)
+		assert.NoError(t, err)
+		sample, err := os.Open(path)
+		assert.NoError(t, err)
+
+		_, err = io.Copy(part, sample)
+		assert.NoError(t, err)
+		assert.NoError(t, writer.Close())
+
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile/photo", body)
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
+		rec := httptest.NewRecorder()
+		context := e.NewContext(req, rec)
+		context.SetPath("/organizer/profile/photo")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdatePhotoOrganizerControllerTest())(context)
+
+		var Photo ResponseFailed
+		bodyReq := rec.Body.String()
+		json.Unmarshal([]byte(bodyReq), &Photo)
+		assert.Equal(t, "The uploaded file is too big. Please choose an file that's less than 3MB in size", Photo.Message)
+		assert.Equal(t, http.StatusBadGateway, rec.Code)
+	})
+	t.Run("TestPhoto_FailedBucket", func(t *testing.T) {
+		path := "../util/images/cobafoto.jpeg"
+		bucket = "alta_airbnb"
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		part, err := writer.CreateFormFile("logo", path)
+		assert.NoError(t, err)
+		sample, err := os.Open(path)
+		assert.NoError(t, err)
+
+		_, err = io.Copy(part, sample)
+		assert.NoError(t, err)
+		assert.NoError(t, writer.Close())
+
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile/photo", body)
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
+		rec := httptest.NewRecorder()
+		context := e.NewContext(req, rec)
+		context.SetPath("/organizer/profile/photo")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdatePhotoOrganizerControllerTest())(context)
+
+		var Photo ResponseFailed
+		bodyReq := rec.Body.String()
+		json.Unmarshal([]byte(bodyReq), &Photo)
+		assert.Equal(t, "googleapi: Error 404: The specified bucket does not exist., notFound", Photo.Message)
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	})
 }
 func TestUpdateDocumentControllerSuccess(t *testing.T) {
 	e := InitEchoTestAPI()
@@ -1337,8 +1461,8 @@ func TestUpdateDocumentControllerSuccess(t *testing.T) {
 	if err != nil {
 		t.Error("error create token")
 	}
-
-	path := "cobadoc.pdf"
+	bucket = "alta_wedding"
+	path := "../util/images/cobadoc.pdf"
 
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
@@ -1364,5 +1488,130 @@ func TestUpdateDocumentControllerSuccess(t *testing.T) {
 	json.Unmarshal([]byte(bodyReq), &Document)
 	assert.Equal(t, "success upload document", Document.Message)
 	assert.Equal(t, http.StatusCreated, rec.Code)
+}
 
+func TestUpdateDocumentControllerFailed(t *testing.T) {
+	e := InitEchoTestAPI()
+	InsertMockDataOrganizerToDB()
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	t.Run("TestDocument_FailedForm", func(t *testing.T) {
+		path := "../util/images/cobadoc.pdf"
+
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		part, err := writer.CreateFormFile("salah", path)
+		assert.NoError(t, err)
+		sample, err := os.Open(path)
+		assert.NoError(t, err)
+
+		_, err = io.Copy(part, sample)
+		assert.NoError(t, err)
+		assert.NoError(t, writer.Close())
+
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile/document", body)
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
+		rec := httptest.NewRecorder()
+		context := e.NewContext(req, rec)
+		context.SetPath("/organizer/profile/document")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdateDocumentsOrganizerControllerTest())(context)
+
+		var Photo ResponseFailed
+		bodyReq := rec.Body.String()
+		json.Unmarshal([]byte(bodyReq), &Photo)
+		assert.Equal(t, "http: no such file", Photo.Message)
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	})
+	t.Run("TestDocument_FailedExtension", func(t *testing.T) {
+		path := "../util/images/cobafoto.jpeg"
+
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		part, err := writer.CreateFormFile("file", path)
+		assert.NoError(t, err)
+		sample, err := os.Open(path)
+		assert.NoError(t, err)
+
+		_, err = io.Copy(part, sample)
+		assert.NoError(t, err)
+		assert.NoError(t, writer.Close())
+
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile/document", body)
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
+		rec := httptest.NewRecorder()
+		context := e.NewContext(req, rec)
+		context.SetPath("/organizer/profile/document")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdateDocumentsOrganizerControllerTest())(context)
+
+		var Photo ResponseFailed
+		bodyReq := rec.Body.String()
+		json.Unmarshal([]byte(bodyReq), &Photo)
+		assert.Equal(t, "The provided file format is not allowed. Please upload a PDF document", Photo.Message)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+	})
+	t.Run("TestDocument_FailedSizeToBig", func(t *testing.T) {
+		path := "../util/images/doc-over-size.pdf"
+
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		part, err := writer.CreateFormFile("file", path)
+		assert.NoError(t, err)
+		sample, err := os.Open(path)
+		assert.NoError(t, err)
+
+		_, err = io.Copy(part, sample)
+		assert.NoError(t, err)
+		assert.NoError(t, writer.Close())
+
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile/document", body)
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
+		rec := httptest.NewRecorder()
+		context := e.NewContext(req, rec)
+		context.SetPath("/organizer/profile/document")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdateDocumentsOrganizerControllerTest())(context)
+
+		var Photo ResponseFailed
+		bodyReq := rec.Body.String()
+		json.Unmarshal([]byte(bodyReq), &Photo)
+		assert.Equal(t, "The uploaded file is too big. Please choose an file that's less than 3MB in size", Photo.Message)
+		assert.Equal(t, http.StatusBadGateway, rec.Code)
+	})
+	t.Run("TestDocument_FailedBucket", func(t *testing.T) {
+		path := "../util/images/cobadoc.pdf"
+		bucket = "alta_airbnb"
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		part, err := writer.CreateFormFile("file", path)
+		assert.NoError(t, err)
+		sample, err := os.Open(path)
+		assert.NoError(t, err)
+
+		_, err = io.Copy(part, sample)
+		assert.NoError(t, err)
+		assert.NoError(t, writer.Close())
+
+		req := httptest.NewRequest(http.MethodPut, "/organizer/profile/document", body)
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+		req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
+		rec := httptest.NewRecorder()
+		context := e.NewContext(req, rec)
+		context.SetPath("/organizer/profile/document")
+		middleware.JWT([]byte(constants.SECRET_JWT))(UpdateDocumentsOrganizerControllerTest())(context)
+
+		var Photo ResponseFailed
+		bodyReq := rec.Body.String()
+		json.Unmarshal([]byte(bodyReq), &Photo)
+		assert.Equal(t, "googleapi: Error 404: The specified bucket does not exist., notFound", Photo.Message)
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	})
 }
