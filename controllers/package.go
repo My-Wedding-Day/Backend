@@ -168,10 +168,7 @@ func UpdatePackageController(c echo.Context) error {
 	}
 
 	// Edit into database
-	_, err := database.UpdatePackage(id, paket)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, responses.StatusFailed("bad request"))
-	}
+	database.UpdatePackage(id, paket)
 	return c.JSON(http.StatusCreated, responses.StatusSuccess("success edit data"))
 }
 
