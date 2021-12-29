@@ -51,28 +51,39 @@ var (
 		Pax:          1000,
 		PackageDesc:  "Package Desc Baru",
 	}
+	mock_data_foto = models.Photo{
+		Package_ID: 1,
+		Photo_Name: "Coba",
+		UrlPhoto:   "fotoini.com",
+	}
+	mock_data_organizer2 = models.Organizer{
+		WoName:      "coba2wedd",
+		Email:       "coba@coba.coba",
+		Password:    "yourpass",
+		PhoneNumber: "081232323",
+		City:        "Makassar",
+		Address:     "Jl. Kertajaya",
+	}
 )
 
-// // Fungsi untuk melakukan login dan ekstraksi token JWT
-// func UsingJWTCart() (string, error) {
-// 	// Melakukan login data user test
-// 	InsertMockDataOrganizerToDB()
-// 	var user models.Organizer
-// 	tx := config.DB.Where("email = ? AND password = ?", mock_data_organizer.Email, mock_data_organizer.Password).First(&user)
-// 	if tx.Error != nil {
-// 		return "", tx.Error
-// 	}
-// 	// Mengektraksi token data user test
-// 	token, err := middlewares.CreateToken(int(user.ID))
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	return token, nil
-// }
+var logininfo2 = models.LoginRequestBody{
+	Email:    "coba@coba.coba",
+	Password: "yourpass",
+}
 
 func InsertMockDataPackageTanpaFotoToDB() error {
 	var err error
 	if err = config.DB.Save(&mock_data_package_tanpa_foto).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func InsertMockDataOrganizer2ToDB() error {
+	xpassOrganizer, _ = database.GeneratehashPassword(mock_data_organizer2.Password)
+	mock_data_organizer2.Password = xpassOrganizer
+	var err error
+	if err = config.DB.Save(&mock_data_organizer2).Error; err != nil {
 		return err
 	}
 	return nil
@@ -85,6 +96,22 @@ func InsertMockDataPackageTanpaFotoUpdateToDB() error {
 	}
 	return nil
 }
+
+func InsertMockDataFotoToDB() error {
+	var err error
+	if err = config.DB.Save(&mock_data_foto).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// func InsertMockDataFoto2ToDB() error {
+// 	var err error
+// 	if err = config.DB.Save(&mock_data_foto2).Error; err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func TestGetPackageByIDSuccess(t *testing.T) {
 	e := InitEchoTestAPIPackage()
@@ -212,6 +239,7 @@ func TestUpdatePackageSuccess(t *testing.T) {
 	e := InitEchoTestAPIPackage()
 	InsertMockDataOrganizerToDB()
 	InsertMockDataPackageTanpaFotoToDB()
+	InsertMockDataFotoToDB()
 	// Mendapatkan data update package
 	body, err := json.Marshal(mock_data_package_tanpa_foto_update)
 	if err != nil {
@@ -241,4 +269,77 @@ func TestUpdatePackageSuccess(t *testing.T) {
 	json.Unmarshal([]byte(bodyReq), &paket)
 	assert.Equal(t, http.StatusCreated, res.Code)
 	assert.Equal(t, "success edit data", paket.Message)
+}
+
+func TestUpdatePackageFalseParam(t *testing.T) {
+	e := InitEchoTestAPIPackage()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataPackageTanpaFotoToDB()
+	InsertMockDataFotoToDB()
+	// Mendapatkan data update package
+	body, err := json.Marshal(mock_data_package_tanpa_foto_update)
+	if err != nil {
+		t.Error(t, err, "error")
+	}
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	req := httptest.NewRequest(http.MethodPut, "/package/:id", bytes.NewBuffer(body))
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	res := httptest.NewRecorder()
+	context := e.NewContext(req, res)
+	context.SetPath("/package/:id")
+	context.SetParamNames("id")
+	context.SetParamValues("#")
+	middleware.JWT([]byte(constants.SECRET_JWT))(UpdatePackageControllerTest())(context)
+
+	var paket PackageSingleResponSuccess
+	bodyReq := res.Body.String()
+	json.Unmarshal([]byte(bodyReq), &paket)
+	assert.Equal(t, http.StatusBadRequest, res.Code)
+	assert.Equal(t, "false param", paket.Message)
+}
+
+func TestUpdatePackageFalseID(t *testing.T) {
+	e := InitEchoTestAPIPackage()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataOrganizer2ToDB()
+	InsertMockDataPackageTanpaFotoToDB()
+	InsertMockDataFotoToDB()
+	// Mendapatkan data update package
+	body, err := json.Marshal(mock_data_package_tanpa_foto_update)
+	if err != nil {
+		t.Error(t, err, "error")
+	}
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo2.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+	req := httptest.NewRequest(http.MethodPut, "/package/:id", bytes.NewBuffer(body))
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	res := httptest.NewRecorder()
+	context := e.NewContext(req, res)
+	context.SetPath("/package/:id")
+	context.SetParamNames("id")
+	context.SetParamValues("1")
+	middleware.JWT([]byte(constants.SECRET_JWT))(UpdatePackageControllerTest())(context)
+
+	var paket PackageSingleResponSuccess
+	bodyReq := res.Body.String()
+	json.Unmarshal([]byte(bodyReq), &paket)
+	assert.Equal(t, http.StatusUnauthorized, res.Code)
+	assert.Equal(t, "Unauthorized Access", paket.Message)
 }
