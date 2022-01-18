@@ -47,6 +47,13 @@ var (
 		Pax:          100,
 		PackageDesc:  "Package Desc",
 	}
+	mock_data_dupli = models.Package{
+		Organizer_ID: 1,
+		PackageName:  "Coba",
+		Price:        15000000,
+		Pax:          100,
+		PackageDesc:  "Package Desc",
+	}
 	mock_data_package_tanpa_foto_update = models.Package{
 		Organizer_ID: 1,
 		PackageName:  "Coba1",
@@ -77,6 +84,14 @@ var logininfo2 = models.LoginRequestBody{
 func InsertMockDataPackageTanpaFotoToDB() error {
 	var err error
 	if err = config.DB.Save(&mock_data_package_tanpa_foto).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func InsertMockDataPackageDupliToDB() error {
+	var err error
+	if err = config.DB.Save(&mock_data_dupli).Error; err != nil {
 		return err
 	}
 	return nil
@@ -569,5 +584,50 @@ func TestInsertPackageControllerSuccess(t *testing.T) {
 	json.Unmarshal([]byte(bodyReq), &Photo)
 	assert.Equal(t, "success to input package", Photo.Message)
 	assert.Equal(t, http.StatusCreated, rec.Code)
+
+}
+
+func TestInsertPackageControllerDupiName(t *testing.T) {
+	e := InitEchoTestAPIPackage()
+	InsertMockDataOrganizerToDB()
+	InsertMockDataPackageTanpaFotoToDB()
+	InsertMockDataPackageDupliToDB()
+	InsertMockDataFotoToDB()
+	var organizerDetail models.Organizer
+	tx := config.DB.Where("email=? AND password=?", logininfo.Email, xpassOrganizer).First(&organizerDetail)
+	if tx.Error != nil {
+		t.Error(tx.Error)
+	}
+	token, err := middlewares.CreateToken(int(organizerDetail.ID))
+	if err != nil {
+		t.Error("error create token")
+	}
+
+	path := mock_data_foto.UrlPhoto
+
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("urlphoto", path)
+	assert.NoError(t, err)
+	sample, err := os.Open(path)
+	assert.NoError(t, err)
+
+	_, err = io.Copy(part, sample)
+	assert.NoError(t, err)
+	assert.NoError(t, writer.Close())
+
+	req := httptest.NewRequest(http.MethodPost, "/package", body)
+	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %v", token))
+	req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
+	rec := httptest.NewRecorder()
+	context := e.NewContext(req, rec)
+	context.SetPath("/package")
+	middleware.JWT([]byte(constants.SECRET_JWT))(InsertPackageControllerTest())(context)
+
+	var Photo ResponSuccess
+	bodyReq := rec.Body.String()
+	json.Unmarshal([]byte(bodyReq), &Photo)
+	assert.Equal(t, "package name was use, try input another package name", Photo.Message)
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
 
 }
